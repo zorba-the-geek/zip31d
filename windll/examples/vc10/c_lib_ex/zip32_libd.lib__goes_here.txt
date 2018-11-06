@@ -1,0 +1,1 @@
+Put zip32_libd.lib here to compile the DEBUG version of the LIB example.

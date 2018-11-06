@@ -1,0 +1,1 @@
+CC="cc" CFLAGS=" -I. -DUNIX -O3 -DBZ_NO_STDIO  -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES" AR="ar" RANLIB="ranlib" RM="rm -f"

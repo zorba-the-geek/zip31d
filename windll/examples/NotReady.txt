@@ -1,0 +1,10 @@
+NotReady.txt
+
+The file NotReady.zip is an archive containing works in progress as well
+as old example projects that are expected to be dropped.  We recommend
+you do not use any of the examples in the NotReady.zip archive.
+
+In particular, the C# example needs work and we hope to have a working
+C# example in the main Zip source tree by the next beta/release.
+
+26 August 2015

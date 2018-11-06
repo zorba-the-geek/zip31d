@@ -1,0 +1,95 @@
+#!/bin/sh
+#
+# zos/zld - Zip 3.1, UnZip 6.10                                     09 Sept 2011
+#
+# Copyright (c) 2011 Info-ZIP.  All rights reserved.
+#
+# See the accompanying file LICENSE, version 2009-Jan-2 or later
+# (the contents of which are also included in zip.h) for terms of use.
+# If, for some reason, all these files are missing, the Info-ZIP license
+# also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+#
+# zld: In the z/OS UNIX Systems Services or z/VM OpenEdition environments,
+#      invoke the IBM XL C linker driver program capturing the listing and
+#      error output.
+#
+#      The XL C linker driver program normally directs any listing output to
+#      stdout, and error output to stderr.  This is not terribly useful for
+#      any but the most trivial programs, so this script was introduced to
+#      make things more useful.
+#
+#      - The first parameter must be the name of the XL C compiler driver
+#        program - cc, c89, xlc, xlc_64, etc.
+#
+#      - The target program file name is extracted from the -o option parameter,
+#        and the target file directory (if any) and base name determined.
+#
+#      - The link stdout is directed to a file with the target program file
+#        directory and basename and the extension ".map".
+#
+#      - The compiler stderr is directed to the ".map" file.
+#
+
+# Determine shell name
+zldname=$(basename "$0")
+
+# Save zld options
+zldopts=$@
+
+# Emit usage if invoked with no operands
+if [ $# = 0 ]; then
+  echo usage: "$zldname pgm [XL_C_options] -o target objfile1.o objfile2.o"
+  echo Captures C link listing and errors in target.map
+  exit 1
+fi
+
+# Bypass the XL C linker name
+shift
+
+# Locate the XL C linker -o option and target program file name
+targfile=""
+while getopts ":o:I:D:W:q:L:" opt; do
+  case $opt in
+    o ) targfile="$OPTARG" ;;
+    I ) ;;      # -Idir
+    D ) ;;      # -Dsymbol
+    W ) ;;      # -Woption
+    q ) ;;      # -qoption
+    L ) ;;      # -Loption
+    * ) ;;      # Ignore other forms
+  esac
+done
+shift $((OPTIND -1))
+
+# Escape all parentheses and "strings" in the zld options
+zldopts=$(echo "$zldopts" | sed -e "s/(/\'(/g"     \
+                                -e "s/)/)\'/g"     \
+                                -e "s/=\"/=\'\"/g" \
+                                -e "s/\" /\"\' /g" )
+
+# Determine listing file directory and base names
+if [ -n "${targfile}" ]; then
+  targdir=$(dirname $targfile)
+  targname=$(basename $targfile .o)
+else
+  echo "$zldname:" options must include "\"-o targfile\""
+  exit 1
+fi
+
+if [ -z "${targdir}" ]; then
+  targdir="."
+elif [ ! -d "${targdir}" ]; then
+  echo "$zldname:" $targdir is not an existing directory
+  exit 1
+fi
+
+# Set the listing file path name
+mapname=$targdir/$targname.map
+
+# Remove any previous output file
+rm -f $mapname
+
+# Invoke the C linker capturing stdout and stderr
+eval "$zldopts >$mapname 2>&1"
+rc=$?
+exit $rc

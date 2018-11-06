@@ -1,0 +1,357 @@
+README for Zip 3.1d (15 November 2015)
+--------------------------------------
+
+Copyright (c) 1990-2015 Info-ZIP.  All rights reserved.
+
+See the accompanying file LICENSE (the contents of which are also
+included in unzip.h, zip.h and wiz.h) for terms of use.  If, for some
+reason, all of these files are missing, the Info-ZIP license may also
+be found at:
+   ftp://ftp.info-zip.org/pub/infozip/license.html
+   http://www.info-zip.org/pub/infozip/license.html
+Also see "Copyright notice" below.
+---------------------------------------------------------------------------
+
+Zip 3.1d is a BETA.  Do not distribute.
+
+Zip 3.1 is the latest update of Zip 3.x with large file and split archive
+support.  For now Zip 2.3x (Zip 2.32 being the current 2.x release)
+remains available and supported, but users should switch to Zip 3.x as soon
+as possible as the Zip 2.3x code thread is getting out of touch with modern
+systems.
+
+Testing for Zip 3.x so far has focused mainly on Unix, VMS, Mac OS X, and
+Windows, so it's likely some ports may not be fully supported.  If you find
+your favorite port is partially or completely broken, send us the details,
+or, better, send bug fixes.  It's possible that unsupported ports may be
+dropped in the future.
+
+---------------------------------------------------------------------------
+Zip 3.1d is considered a Release Candidate.  The feature set is relatively
+complete and the code is more or less stable.  Except for minor updates and
+bug fixes, what's in Zip 3.1d will likely be released as Zip 3.1.  This may
+be your last chance to review Zip 3.1 before release and provide comments
+and suggestions, and to identify bugs and provide fixes (if you have them).
+---------------------------------------------------------------------------
+
+Contents of this file:
+  Overview
+  Zip 3.1d Highlights
+  Encryption Notice
+  Copyright Notice
+  Additional Notes
+  Frequently Asked Questions
+
+---------------------------------------------------------------------------
+Overview:
+
+Zip 3.1 is a compression and file packaging utility.  It is compatible with
+PKZIP 2.04g (Phil Katz ZIP) for MSDOS systems.  There is a companion to Zip
+called UnZip (of course) which you should be able to find in the same place
+you got Zip.  Zip and UnZip should be available online at:
+
+   http://www.info-zip.org/
+   http://sourceforge.net/projects/infozip/
+
+So far Zip has been ported to a wide array of Unix and other mainframes,
+minis, and micros including VMS, OS/2, Minix, MSDOS, Windows, Atari, Amiga,
+BeOS and VM/CMS.  Although highly compatible with PKware's PKZIP and
+PKUNZIP utilities of MSDOS fame, our primary objective has been one of
+portability and other-than-MSDOS functionality.  Features not found in the
+PKWare version include creation of zip files in a pipe or on a device; VMS,
+BeOS and OS/2 extended file attributes; conversion from Unix to MSDOS text
+file format; and, of course, the ability to run on most of your favorite
+operating systems.  And it's free.
+
+---------------------------------------------------------------------------
+Zip 3.1d Highlights:
+
+(zip31d.ann is an expanded version of this list.  See WHATSNEW for the
+detailed list and more on each item.)
+
+- AES encryption.  Keyfiles.
+- LZMA and PPMd compression.
+- Command line improvements, such as -@@ to read list of files from file.
+- New Backup mode allows creation of backup sets including differential and
+    incremental backups.
+- Revamped LIB/DLL interface, with examples for Windows, Unix and VMS.
+- On Unix, quoted/escaped wildcards now processed by Zip.  Found files
+    now alphabetically sorted.  Updated support of named pipes.
+- Mac OS X resource storage.
+- Windows Unicode command line support.  Windows symlinks.  Windows mount
+    and reparse points.  Windows long paths.  Windows 64-bit support.
+- Some z/OS and MVS updates.  (Some updates untested in this beta.)
+- Updated Unicode support, including optional use of iconv.
+- UTF-8 paths now stored as native.  Zip no longer transliterates paths.
+- Streaming mode, where Zip stores information sufficient for a streaming
+    unzip to fully extract files.
+- Better selection of when to use Zip64 large file support.
+- Dates can now include times.  -pt times performance of Zip.
+- New logging options.
+- Additional ways to update output paths.
+- Quick Zip version using -vq.
+- Options -FS (file sync) and -sf (show files) can now be used together to
+    show differences between an archive and the file system.
+- Bug fixes.  Debian patches.
+- New error codes for compilation, encryption and other errors.
+- Compiled manuals now in docs/ directory.
+- Enhanced comment support.
+- Support for .zipx archives.
+- Updates to utilities ZipCloak, ZipNote, and ZipSplit.
+
+See the extended help (zip -hh) and the manuals (man pages in /man or plain
+text versions in docs/) for more on how to use these and other new features.
+
+Note on 16-bit OS support:  Though Zip 3.1 is designed to support the
+latest zip standards and modern OS, some effort has been made to maintain
+support for older and smaller systems.  If you find Zip 3.1 does not fit on
+or otherwise does not work well on a particular OS, send in the details and
+we might be able to help.
+
+---------------------------------------------------------------------------
+Encryption Notice (applies when AES encryption included):
+
+------
+This distribution includes cryptographic software.  The country in which
+you currently reside may have restrictions on the import, possession, use,
+and/or re-export to another country, of encryption software.  BEFORE using
+any encryption software, please check your country's laws, regulations and
+policies concerning the import, possession, or use, and re-export of
+encryption software, to see if this is permitted. See
+<http://www.wassenaar.org/> for more information.
+
+The U.S. Government Department of Commerce, Bureau of Industry and Security
+(BIS), has classified this software as Export Commodity Control Number
+(ECCN) 5D002.C.1, which includes information security software using or
+performing cryptographic functions and makes it eligible for export under
+the License Exception ENC Technology Software Unrestricted (TSU) exception.
+------
+
+See the file INSTALL for additional information.
+
+---------------------------------------------------------------------------
+Copyright Notice:
+
+This source kit includes software from various sources.  Software placed in
+the public domain remains in the public domain.  Software from third party
+sources (such as bzip2 and AES code) are subject to the licensing noted in
+and with those files.  We believe the licenses governing the included files
+are compatible with the Info-ZIP license in that meeting the conditions of
+the Info-ZIP license should also meet the conditions of the included third-
+party files, as long as the notification requirements of those packages are
+met.  All other contents of this kit are subject to and distributed under
+the Info-ZIP license.
+
+---------------------------------------------------------------------------
+Additional Notes:
+
+Installation.  Please read the file INSTALL for information on how to
+compile and install Zip, ZipSplit, ZipCloak, and ZipNote.  Read the manual
+pages (in man format in the man/ directory or in plain text format in the
+docs/ directory) for information on how to use them.  INSTALL also includes
+installation notes, such as for the PPMd compression issue on AIX/PowerPC
+and HP-UX/PA-RISC systems.
+
+Utilities.  At this point ZipSplit, ZipCloak, and ZipNote should work
+with large files (larger than 4 GiB) if LARGE_FILE_SUPPORT is enabled.
+ZipSplit and ZipNote now can read split (multi-disk) archives, though they
+can't output splits.  ZipCloak does not handle split input archives due
+to limitations of the zcrypt software.  (We hope to resolve these issues
+before Zip 3.1 is released.)
+
+Bug reports.  Our primary method for receiving bug reports is via the web
+form at http://www.info-zip.org/zip-bug.html and suggestions for new
+features can be submitted there (although we don't promise to use all of
+them).  (We have discontinued the old email address zip-bugs@lists.wku.edu
+because of too much spam.)  We also are on SourceForge at
+http://sourceforge.net/projects/infozip/.  In addition, a new Info-ZIP
+discussion forum is available (see below) and bug reports and feature
+requests can be posted there.  A good approach may be to post the details
+on the forum so others can benefit from the posting, and may provide some
+help, then use the web reply form to let us know you did that if you don't
+get a reply from us in the forum in a reasonable time.
+
+Ports to other OS/compilers.  If you're considering a port to a new system
+or compiler, please check in with zip-bugs FIRST, since the code is
+constantly being updated behind the scenes.  We'll arrange to give you
+access to the latest source.
+
+Discussion forum.  If you'd like to keep up to date with our Zip (and
+companion UnZip utility) development, join the ranks of BETA testers,
+add your own thoughts and contributions, etc., check out the new
+discussion forum at http://www.info-zip.org/phpBB3/index.php.  This is
+the latest offering (courtesy of Hunter Goatley), after the various
+Info-ZIP mailing-lists on mxserver@lists.wku.edu were no longer
+available and the temporary QuickTopic discussion group for Info-ZIP
+issues at http://www.quicktopic.com/27/H/V6ZQZ54uKNL died a horrible
+death due to large amounts of spam.  (The old QuickTopic discussion
+group remains available, but read only.)  The new discussion forum can
+be used to discuss issues, request features, and is one place new betas
+and releases are announced.  It also is a place to post bug reports, and
+patches can be submitted as attachments.  Be sure to post new issues in
+new threads.  You can also post Bug Reports and Feature Requests at
+SourceForge.  However, the web site contact form remains available if
+you would rather not post on the public forums.
+
+---------------------------------------------------------------------------
+Frequently Asked Questions on Zip and UnZip:
+
+(See the FAQ page on our website (http://www.info-zip.org/FAQ.html) for
+more information.)
+
+Q. When unzipping I get an error message about "compression method 8".
+
+A. This is standard deflate, which has been around for awhile.  Please
+   get a current version of UnZip.
+
+
+Q. How about "compression method 12"?  What methods are out there?
+
+A. Compression method 12 is bzip2 and requires a relatively modern UnZip.
+   Please get the latest version of UnZip.
+
+   Here are some of the compression methods out there (* = Zip 3.1 has):
+
+   *  0    Store
+   *  8    Deflate
+      9    Enhanced Deflate (UnZip has; may get added to Zip soon)
+   * 12    bzip2
+   * 14    LZMA
+     19    IBM LZ77 z Architecture (PFS)
+     95    XZ (may get added to Zip soon)
+     96    Jpeg
+     97    WavPack
+   * 98    PPMd (version I, Rev 1)
+
+    Use of anything other than Store or Deflate requires a relatively
+    current unzip.  UnZip 6.00 can read bzip2.  UnZip 6.1 will read
+    entries compressed with LZMA and PPMd.
+
+    The next release of Zip will likely include additional methods, such
+    as XZ.
+
+
+Q. What encryption does Zip support?  UnZip?
+
+A. Zip 3.1 supports Traditional zip (ZipCrypto) encryption as well as AES
+   encryption.  (Zip 3.0 and before only supported Traditional encryption.)
+
+   Traditional zip encryption is the encryption that has been supported by
+   Zip since early on.  It is widely supported, but is considered weak by
+   today's standards and is relatively easy to crack.  Zip now includes
+   Traditional encryption in the base source kit (this kit).  It can be
+   disabled (see INSTALL for details), but we no longer ship a kit that is
+   encryption free.
+
+   Zip 3.1 now supports AES encryption.  As our AES implementation is
+   subject to US Export Control laws, we do not include it in the Zip base
+   source kit but supply it in a separate kit on our ftp site.  This allows
+   import and use of Zip in countries where strong AES encryption is not
+   allowed.  To include AES encryption in Zip, just download the Info-ZIP
+   AES WG kit and extract it into the top directory of this kit to
+   populate the aes_wg directory, and recompile.  (See INSTALL for details.)
+   Our AES implementation is based on WinZip AES (which is based on Gladman's
+   implementation of AES) and is compatible with WinZip, 7-Zip and other
+   utilities out there.  Zip supports 128-, 192- and 256-bit encryption.
+
+   UnZip 5.x and UnZip 6.0 support Traditional encryption.  UnZip 6.1 will
+   support Traditional and AES encryption.
+
+
+Q. I can't extract this zip file that I just downloaded.  I get
+   "zipfile is part of multi-disk archive" or some other message.
+
+A. Please make sure that you made the transfer in binary mode.  Check
+   in particular that your copy has exactly the same size as the original.
+   Note that the above message also may actually mean you have only part
+   of a multi-part archive.  Also note that UnZip 5.x and UnZip 6.0
+   don't have multi-disk (split) archive support.  A work around
+   is to use Zip 3.0 or later to convert the split archive to a single-file
+   archive, then use UnZip on that archive.  Another is to use ZipSplit to
+   convert the split archive to a set of smaller archives that UnZip can
+   process as a set.  The latest UnZip 6.1 beta can read split archives.
+
+   If the archive is actually broke or missing splits, try zip -F to put
+   what you have into a new archive.  If you're missing the last disk,
+   you may have to use zip -FF.
+
+
+Q. When running UnZip, I get a message about "End-of-central-directory
+   signature not found".
+
+A. This usually means that your zip archive is damaged, or that you
+   have an uncompressed file with the same name in the same directory.
+   In the first case, it makes more sense to contact the person you
+   obtained the zip file from rather than the Info-ZIP software
+   developers, and make sure that your copy is strictly identical to
+   the original.  In the second case, use "unzip zipfile.zip" instead
+   of "unzip zipfile", to let UnZip know which file is the zip archive
+   you want to extract.
+
+   If the archive is actually missing the end, try zip -FF to fix it,
+   but note that zip -FF can't restore files that are in the missing
+   part of the archive.
+
+
+Q. Why doesn't Zip do <something> just like PKZIP does?
+
+A. Zip is not a PKZIP clone and is not intended to be one.  In some
+   cases we feel PKZIP does not do the right thing (e.g., not
+   including pathnames by default); in some cases the operating system
+   itself is responsible (e.g., under Unix it is the shell which
+   expands wildcards, not Zip).  (The shell remains the default on Unix,
+   but Zip 3.1 now expands quoted or escaped wildcards.)  Info-ZIP's and
+   PKWARE's zipfiles are interchangeable, not the programs.
+
+   For example, if you are used to the following PKZIP command:
+               pkzip -rP foo *.c
+   you must use instead on Unix:
+               zip -R foo "*.c"
+   (The "*.c" is a pattern Zip will use to match paths to.  The quotes
+   are needed to let the shell know that it should not expand the *.c
+   argument but instead pass it on to the program, but are not needed
+   on ports that do not expand file paths like MSDOS.)
+
+
+Q. Can I distribute Zip and UnZip sources and/or executables?
+
+A. You may redistribute the latest official distributions without any
+   modification, without even asking us for permission. You can charge
+   for the cost of the media (CDROM, diskettes, etc...) and a small copying
+   fee.  If you want to distribute modified versions please contact us at
+   www.Info-ZIP.org first. You must not distribute beta versions.  A
+   partial exception are betas designated by Info-ZIP as "public betas."
+   Public betas should not be distributed as well, as all features may not
+   be fully implemented and full testing may not have been done, but it's
+   understood that public betas may include features immediately useful to
+   some users and so distribution is not recommended but not prohibited.
+   The latest official distributions are always on ftp.Info-ZIP.org in
+   directory /pub/infozip and subdirectories and at SourceForge.  All
+   source and binary distributions are subject to the conditions in the
+   Info-ZIP license.  See the Info-ZIP license for details.
+
+
+Q. Can I use the executables of Zip and UnZip to distribute my software?
+
+A. Yes, so long as it is made clear in the product documentation that
+   neither UnZip nor Zip is being sold, that the source code is freely
+   available, and that there are no extra or hidden charges resulting
+   from its use by or inclusion with the commercial product.  See the
+   Info-ZIP license for more.  Here is an example of a suitable notice:
+
+     NOTE:  <Product> is packaged on this CD using Info-ZIP's compression
+     utility.  The installation program uses UnZip to read zip files from
+     the CD.  Info-ZIP's software (Zip, UnZip and related utilities) is
+     freely distributed under the Info-ZIP license and can be obtained as
+     source code or executables from various sites, including
+     ftp://ftp.info-zip.org/pub/infozip.
+
+
+Q. Can I use the source code of Zip and UnZip in my commercial application?
+   Can I include binary libraries?
+
+A. Yes, as long as the conditions in the Info-ZIP license are met.  For
+   example, you could include in your product documentation the required
+   acknowledgments and note that the original sources are available at
+   www.Info-ZIP.org.  If you have special requirements contact us.
+

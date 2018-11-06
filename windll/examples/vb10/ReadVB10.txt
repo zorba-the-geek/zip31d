@@ -1,0 +1,30 @@
+ReadVB10.txt
+
+Contents of the "windll/examples/vb10" directory
+
+On Windows open this file in WordPad, gEdit, or similar.
+
+This directory contains a Visual Basic project example for using the new
+Zip 3.1 zip32_dll.dll library.  See the comments in the form and project
+files for details.
+
+This example shows how to use the new Zip 3.1 DLL interface.  It is a mostly
+complete example demonstrating how to use nearly all the callbacks in a
+graphical application.  This example supports Unicode.
+
+The LIB/DLL interface has been updated since the last Zip 3.1 public beta and
+previously published examples will not work without change.  This VB example
+is for Visual Studio 2010 and probably won't work with earlier versions of
+Visual Studio without modification.
+
+See other directories for examples of using the LIB and DLL with C.  An example
+for C# should be added by release of Zip 3.1.
+
+zip32_dll.dll must be put in the windll\examples\zip31vb directory (or added
+to PATH and Module1.vb modified) for the example project to find it.
+
+See Readme_DLL_LIB.txt and WhatsNew_DLL_LIB.txt for more information on the
+new LIB/DLL interface.
+
+18 September 2014
+

@@ -1,0 +1,410 @@
+BUGS
+----
+
+This file needs updating.  Currently we are not aware of any major bugs in
+Zip 3.1.
+
+Last update 2015-10-18
+
+-------------------------------------------------------------------------------
+
+This is very old:
+
+- zip sometimes crashes on some versions of NetBSD (0.8, 0.9 and early
+  0.9-current), FreeBSD (<= 1.1) and BSDI (< 1.1) . This is due to a
+  bug in stdio.
+  Upgrading the stdio package in /usr/src/lib/libc/stdio should
+  fix the problem. See *BSD mirrors in src/lib/libc/stdio
+  You must at least replace setvbuf.o in all the libc's with a newer version.
+
+
+-------------------------------------------------------------------------------
+Active Bugs/Feature Requests
+----------------------------
+(ToDo has the inactive/not yet addressed list.)
+
+
+
+
+-------------------------------------------------------------------------------
+
+Partial List of Recently Fixed Bugs/Addressed Feature Requests
+--------------------------------------------------------------
+
+- -R does not work.
+    (Seems to work if follow instructions.)
+- -z does not work.
+    (Seems to work now.)
+- Missing -z end blank line.
+    (Seems to be blank line at end.)
+- "zip test2 -sf -R *#U03b9*".
+    (Still broke.)
+    (May be fixed.  In filterlist_to_patterns(), duzname was not being set
+    when pattern was not UTF-8.  Now always look for escaped UTF-8 when
+    UNICODE_SUPPORT enabled.)
+- Test -st against UnZip.
+    (Does not seem to work.  UnZip will not read an archive streamed to it.)
+    (Requires special compilation option to enable.  (See UnZip History.)  Not
+    tested on Windows.)
+    (Seems correctly implemented in Zip, so seems UnZip issue now.)
+    (Not a Zip issue as seems to work for stream zip library.)
+    (Done.)
+- Allow -AF=argile?
+    (Could get confusing when this option gets permuted, and then dumps the
+    argfile contents at that position.  This probably will not get implemented
+    due to the confusion it might cause.  @argfile is currently the only
+    implementation and drops all args right where @argfile appears on the
+    command line.)
+    (Probably should not happen.)
+- Do we still need to detect if include files are UTF-8?
+    (No.)
+- Looks like binary detection algorithm does not consider Unicode double byte
+    text.  Could look for Unicode BOM (for UTF-16 LE) and then look for UTF-16
+    line ends in byte pairs.  If the checks and conversions are all done with
+    byte pairs, should be efficient enough.  However, group discussion agrees
+    with my thought that we should not be calling too many things "text".
+    7-Zip, for instance, treats UTF-8 as binary.  We treat it as text to allow
+    line end conversions on Unicode text.  That is probably enough.  So no
+    further capability additions are planned in this area for this release.)
+- Fix bug where iz_file_read() needs a size of 2 minimum.  LZMA breaks this.
+    (Look at -ll (2582) and -l.)
+    (Done, but needs more testing.)
+    (Line end bug fixed.  Looks working at this point.)
+- Archive comment.
+    (Should be done.)
+    (Bug when reading stdin for archive comment content fixed.)
+    (Looks done.)
+- Update Traditional encryption version.
+    (Should be done.)
+    (As of Zip 3.1d53, ZCRYPT version fixed at final 3.0, unless traditional
+    encryption algorithm change.  Algorithm is no longer tied to other code
+    changes in crypt.h and crypt.c.  There is no longer a kit for ZCRYPT 3.0,
+    changes to crypt.h and crypt.c now tracked as Zip changes (in CHANGES),
+    as they have been.)
+    (Done.)
+- Save execute permissions for Unix scripts in Zip source kit so scripts
+    can be run out of the box.
+    (Now scripts don't need execute permission so may be OBE.)
+    (Considered done for now.)
+- Check performance hit of doing binary checks on all bytes in text files.
+    (Initial tests show 2.5% impact on deflate, 23% on store.  Need more
+    efficient check.)
+    (Or need option to turn off (or on) full file binary check.)
+    (Updated approach now only does full file binary check if a conversion
+    option used (such as -ll or -a) or -BF (--binary-full-check) used.  This
+    should avoid binary check performance impact on files otherwise.)
+    (Done.)
+- File sync -FS -sf shows archive summary at end, not summary of actions to be
+    performed.
+    (This fixed by removing summary.)
+    (Done.)
+- Add compile option that allows disabling the error handler, which should
+    make it easier to identify what line is failing when a failure is
+    detected (and is repeatable) by recompiling without the error handler
+    enabled and letting Zip die at the point of the error.
+    (Seems this is already done using NO_EXCEPT_SIGNALS.)
+    (Done.)
+- Look at implementing auto -fz- feature where if size of input is not known
+    (streaming), create empty spot in extra field structure for the Zip64
+    extra field to go and, if Zip64 is needed, fill in the spot.  For this to
+    be compatible with other utilities, a "no op" extra field needs to fill the
+    hole when not used by the Zip64 extra field.
+    (Note that this technique only works if the size of the extra field is
+    known in advance, which is the case for the Zip64 extra field.)  This
+    approach probably won't help streaming output issues.  2014-09-12)
+    (This looks done using "PH" as the tag of the Placeholder.)
+    (Combined this technique with Zip64 threshold estimation to only use
+    placeholder when might be needed.)
+    (Apply technique in most cases, but still nothing to be done if
+    streaming both input and output.)
+    (Done for now.)
+- ZipCloak has CRC error when decrypt then encrypt.
+    (Seems Zip is putting something in the local CRC field (file time?),
+    which doesn't matter as the CRC gets put in the data descriptor.  But when
+    ZipCloak decrypts, it doesn't update that local CRC when data descriptor
+    removed.  Need to get CRC from central (which is right) and put in local on
+    decrypt.)
+    (This should be fixed.)
+    (Done.)
+- ZipCloak should not ask twice for decryption password.
+    (Done.)
+- Zip should always set GPBF_11_UTF8 if in UTF-8 native mode.  This avoids
+    OEM conversions.
+    (This is now done if utf8_native set.)
+- Add long options to ZipNote.  Review ZipNote code.
+    (ZipSplit and ZipCloak already support long options.)
+    (This should just be a quick conversion of command line processing code.
+    May look at the export/import file format while there, though.)
+    (ZipNote long option support added.)
+    (Issues adding full UTF-8 support to ZipNote.  Leave like it is for beta.
+    ZipNote UTF-8 support will take more work.)
+    (Done for now.  Relook at after Zip 3.1d.)
+- Clean up Unicode and escaped Unicode display for both native and ef.
+    (Could be done.)
+- ZipSplit help should include long options.
+    (Should be done.)
+- If streaming to stdout, only set Zip64 if hit the zip64_threshold.
+    (Don't need to always set it.)
+    (This should be done.)
+- Move C# example to .zip for this public beta (to shorten paths) until have
+    time to rework?
+    (In WINDLL, created archive notready.zip and moved C# and "old" examples
+    into it.)
+    (Relook at after Zip 3.1d.)
+- "zip -c archive" should allow updating entry comments.  (Works if --out used.)
+    (Add note that -c only allows one-line comments.  ZipNote can be used to add
+    multi-line comments to entries.)
+    ("zip -c" should display multi-line entry comments.  On WIN32, -c output not
+    UTF-8.  2015-04-22)
+    ("zip -c" now works.  Native UTF-8 should be properly displayed on Win32
+    now.  Still working on multi-line comments.)
+    (Multi-line entry comments now supported.  Moved code to get_entry_comment()
+    so can be shared with putlocal().)
+    (Done for now.)
+- Verify Traditional and AES encryption compatible with other utilities
+    after changes.
+    (Some testing with 7-Zip.)
+    (Some testing with WinZip.)
+    (Preliminary testing done.  Looks like Zip is doing what it's supposed to.)
+    (Done for now.)
+- Verify entry and archive comments are compatible with other utilities.
+    Verify UTF-8 archive comment supported (when using UTF-8 bit).  Test
+    against 7-Zip and maybe WinZip.
+    (7-Zip shows entry comments in column, removing line ends.  Don't see
+    where archive comments are displayed.)
+    (Test with WinZip.)
+    (Preliminary testing done.  Results in proginfo/compatib.txt.  Some support
+    UTF-8 comments.  No one else supports multi-line entry commments.  Only
+    limited support for multi-line archive comments.)
+    (UnZip support could be better.)
+    (Done for now.)
+- Restart a file if using -l, -ll, or -a and was labeled text but was not.
+    Requires output file to be seekable.  This seems proper thing to do in
+    this case.
+    (This likely would be done in zipup by restarting the entry.  Display
+    message to user that binary was detected and file is being reprocessed as
+    binary.)
+    (This should be done before beta goes out.)
+    (Started.  Need to implement split support.)
+    (Looks implemented for the non-split case.  Further work likely postponed
+    to a later beta or release.)
+    (Relook at after Zip 3.1d.)
+- If in iz_file_read(), get \r as next to last char and \r as last read char,
+    can save that second \r instead of returning it and handle on next
+    buffer, allowing proper handling of \r and possibly following \n.
+    Should be a fairly simple change to iz_file_read(), but may need static
+    or global storage for the saved byte.)
+    (May be done.  Need to test.)
+    (Looks like it works.)
+    (Bug when \r at end of buffer fixed.)
+    (Looks working.)
+    (Done.)
+- Break out changes before the start of Zip 3.1 development from CHANGES and
+    save in separate CHANGES30 file?
+    (Done.)
+- Determine what to do with checksum when using AES (WinZip provides two modes,
+    one with CRC and one without.  Providing the CRC in the clear can be a
+    security issue for small files.)
+    (WinZip has written much on this.  I believe their approach is to keep
+    the CRC visible for medium to large files, but remove it for small files.
+    We probably can do the same thing.)
+    (Zip already uses AE-1 (show CRC) for all files, except for small files
+    under 20 bytes, where AE-2 (zero CRC) is used.  This is similar to what
+    WinZip does.)
+    (Found ZipCloak did not restore CRC when decrypt AE-2 entries.  Now it
+    does.)
+    (This all looks done.)
+- UNIX_APPLE "._" sorting.
+    (Fix using IS_ZFLAG_APLDBL() and saving paths presort?)
+    (Could be done.)
+    (After many iterations, AppleDouble and Sequestered sorting looks done.)
+    (Done for now.)
+- ZipCloak should ignore the CRC if AE-2 AES encryption is used.
+    (Seems to handle files with missing CRC, but should recreate CRC on
+    decryption.)
+    (Probably zipbare().)
+    (Looks done.)
+- Does zipcloak -d work with AES?
+    (Apparently so, when tested with 7-Zip.)
+- For Zip64, check size of placeholder and skip if size not what expected.
+    (Partially done.  Zip currently assumes that a placeholder is the same
+    size as a local Zip64 ef.  This may not be true if copying old ef.  What
+    probably should be done is to exit if a bad size local Zip64 or PH field
+    is found, instead of removing and recreating it, which can change the ef
+    block size.)
+    (Need to ignore PH ef unless the exact size needed.)
+    (Actually the code already checks that the PH ef is the right size.)
+    (Done.)
+- Document use of Placeholder (PH) extra field.  (proginfo)
+    (Make sure new Unix and Stream ef are up to date.)
+    (Done.)
+- Option to put "._" files after their primary files.  Maybe "--apple-double".
+    (Looks done.  Needs testing.)
+    (Looks done.  -ad and -ad-sort.)
+- Make changes to Streaming ef definition as noted in email.
+    (Done.)
+- Remove -st comment support (put in STREAM_COMMENT_SUPPORT block?).
+    (Put in STREAM_COMMENTS blocks.)
+    (Done.)
+- Sort __MACOSX.  (Done?)
+    (Done.)
+- Mac AppleDouble sort bug (memory reference, apparently in check_dup_sort()
+    at dup check).  (Fixed?)
+    (Looks fixed.  2015-06-08 email)
+- Mac /./ in sort paths.  (2015-05-31)
+    (Seems fixed.  2015-06-08 email)
+- BUG:  Sorting of __MACOSX.  (2015-06-08 email)
+    (Using -ad, the sort code seems to correctly sort __MACOSX paths on
+    Windows.)
+    (Problem likely line that disabled sort for -as only on UNIX_APPLE.  That
+    line has been removed.)
+    (Seems to work now.)
+- Verify -g can't be used with splits, as restoring is not handled if -g fails.
+    (Should be done.)
+    (Done.)
+- BUG:  crypt.c modes to support VMS and UnZip (set AES_mthd, hide from UnZip).
+    (2015-06-08 email)
+    (May be done.)
+- Require MACRO to compile in Unicode tests.  Default to not included.
+    (Macro UNICODE_TEST for enabling -sC changed to UNICODE_EXTRACT_TEST.
+    Added macro UNICODE_TESTS_OPTION to enable -UT to do the Unicode Tests.
+    Both are disabled (in zip.h) by default now.)
+    (The Unicode tests should either be updated or removed next beta.)
+- How to specify "-P {p}" used by unzip to Zip.  Can {p} include keyfile
+    contents?  Or should {k} be used for that?
+    (Maybe, in -TT string define "{p: -P {p}}" to add " -P password " to
+    unzip command line.  This only gets used if there is a password.  Could
+    also define "{k: -kf {k}}" to add " -kf keyfile " to unzip command line
+    if a keyfile is specified.  Then {p} will only be the password and {k}
+    is the file name of the keyfile.  That way no binary is passed over
+    the command line (which could include whitespace and other troublesome
+    characters).  In both strings, what is after the ":" defines what gets
+    inserted into the command line if that parameter exists.)
+    (Added -TU to specify unzip path and use unzip tests and messages.  -TT
+    could be other than unzip, so can't do some things with that.)
+    (Added parse_TT_string() and build_unzip_command().)
+    (From email discussions (around 6-30-15), should check unzip before
+    file operations, but apparently need to wait to after file scan as
+    don't know what compression methods needed to then.)
+    (Enhanced check_unzip_version() to check compile options.)
+    (This all seems working now.)
+- Document how number of directories in -R pattern (n) impacts matching,
+    especially for things like "foo/*".  (Forum "zip -R zipfile pattern"
+    thread.)
+    (Looks done.)
+- Doc use of "._" and "__MACOSX".
+    (Extended help updated.  Need to update Manual.)
+    (Description of -as now mentions AppleDouble format.  -df now notes
+    differences between Zip handling of MacOS port (before Mac OS X) and
+    Unix Apple (Mac OS X).  -as and -df refer to each other.)
+    (Manual looks updated.)
+- How tell when UnZip ran but did not have the features needed to test
+    the archive (like AES)?  Return code?
+    (Being worked.)
+    (Zip now determines what UnZip features are likely needed to test
+    the resulting archive and creates a feature set.  (It may include
+    a feature that looks needed, but later finds it wasn't.)  Zip then
+    gets version information from UnZip and determines the features it
+    has.  Zip then looks for features in the needed set that aren't in
+    the UnZip supported set.  If any, Zip exits with the ZE_UNZIP error,
+    reporting the missing features.)
+    (Looks done.)
+- _CRT_SECURE_NO_WARNINGS to quiet strcat_s() warnings.  2015-06-27 (SMS)
+    (Added to bzip2 project.  Done?)
+- BUG?  Trace Windows permissions (READ ONLY mainly) to Unix and UnZip.
+    (Directory permissions seem working as designed.  Issues covered
+    by other BUGS items.)
+    (Done.)
+- Directory permissions.
+    (Permissions from Windows/DOS are not converting to appropriate Unix
+    permissions.)
+    (This seems because Unix permissions are not set on Windows.  Need
+    to test if this even makes a difference.)
+    (Zip is working as designed (in this area) apparently.  The Windows to
+    Unix permission test is covered by another item.  UnZip has traditionally
+    been responsible for creating Unix permissions on Unix for archive
+    entries created on Windows.)
+    (Done.)
+- Try builds on Unix when not root.
+    (This may be an UnZip issue on the subject system.)
+    (Seems Zip is doing what it should.)
+    (Seems not an issue.)
+    (Call it done.)
+- Option to change "-" for stdin to something else.  (Forum "Filename in zip
+    when using stdin".)
+    (-SI (--name-stdin) is proposed option.)
+    (Done.)
+- Looks like -ll bug.
+    (Option -ll has bug where a CR at the end of a buffer was not handled
+    correctly.  Details in CHANGES.)
+    (Fixed.)
+- Make Unix escaping the default in quote_arg() used by -T test option.
+    (Done.)
+- Test -st against UnZip.
+    (Does not seem to work.  UnZip will not read an archive streamed to it.)
+    (Requires special compilation option to enable.  (See UnZip History.)  Not
+    tested on Windows.)
+    (Seems correctly implemented in Zip, so seems UnZip issue now.)
+    (Added to list of features UnZip should implement.  Not a Zip issue as
+    seems to work for stream zip library.)
+    (Done.)
+- Add note to License page to see encryption notices on version page.
+    (Done.)
+- Fix compile LIB/DLL by blocking archive test code.
+    (Done.)
+- Detect UnZip 5.52 traditional encryption when -T checks unzip version.
+    (Done.)
+- Is "zip archive -sf -i *.txt" documented?
+    (Added to extended help.)
+    (Added to manual under -sf.)
+    (Done.)
+- Change show_what_doing from zfprintf() to zipmessage() so logged?
+    (Done.)
+- Add -sd output to open log file.
+    (Could be as easy as using zipmessage().)
+    (As zipmessage() handles WIN32 UTF-8, need to look at -sd that
+    assumes this is not handled while converting.)
+    (Should be done.)
+    (Done.)
+- If Zip compiled on Win32 with no additional compression methods, get
+    FILE_ATTRIBUTE_REPARSE_POINT (and related) not defined errors.
+    (Fixed by adding Windows.h to zipup.c.)
+    (Done.)
+- Update zcrypt kit with updated crypt.c.
+    (With dropping of published ZCRYPT 3.0 kit, this may no longer be needed.)
+    (Assume done.)
+- Credit pstodulk with suggesting -R doc updates.
+    (Added to CHANGES.)
+    (Done, unless want to add actual name.)
+    (Done for now.)
+- Maybe change WIN32 VS 2010 LIB output to zip32_libd.lib when DEBUG.
+    (Done.)
+- Look at building the Zip libraries with bzip2 included, at least on Win32.
+    (Looks done.)
+- Combine bzip2 in Zip Windows executable compile and libraries.
+    (Looks done.)
+- -P does not output "Using traditional ..."  message like -e.
+    (Removed key_needed from conditional controlling message.)
+    (Done.)
+- In Win32 C example, indent "Enter ..." in callback.
+    (Done.)
+- Check how zip -FF handles missing disks.  z (look for .zip) does not seem to
+    work.
+    (Can't reproduce issue, i.e. it all seems to work as expected.  Postpone to
+    next beta.)
+- Document password restrictions when using -T caused by quote_arg().
+    (Note added to Manual under -T to avoid shell characters in passwords.)
+    (A better way to pass passwords to UnZip is needed.)
+- Look at implementing auto -fz- feature where if size of input is not known
+    (streaming), create empty spot in extra field structure for the Zip64
+    extra field to go and, if Zip64 is needed, fill in the spot.  For this to
+    be compatible with other utilities, a "no op" extra field needs to fill the
+    hole when not used by the Zip64 extra field.  (Note that this technique
+    only works if the size of the extra field is known in advance, which is
+    the case for the Zip64 extra field.)  This approach probably won't help
+    streaming output issues.  (2014-09-12)
+    (Mostly done.  Should be done by Zip 3.1d.  2015-04-15)
+    (Done.)
+
+
+

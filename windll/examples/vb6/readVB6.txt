@@ -1,0 +1,23 @@
+Contents of the "windll/examples/vb6" directory
+
+On Windows open this file in WordPad.
+
+This directory contains a Visual Basic project example for using the
+new Zip 3.1 zip32_dll.dll library.  See the comments in the form and
+project files for details.
+
+The Zip 3.1 zip32_dll.dll library is not backward compatible with either
+the Zip 2.32 dll, the Zip 3.0 dll, or any of the dlls created from the
+previous Zip 3.1 betas.  This was necessary to finally clean up the dll
+interface to make it more consistent and intuitive (hopefully) and to
+add in hooks for later backward compatible expansion.  This dll also has
+an updated version reporting feature that can be used to verify
+compatibility and confirm what features are available at run time.  See
+example code in this directory for how to use these new features.
+
+It should be simple to convert a VB program using zip32.dll to
+zip32_dll.dll.  For a zip32.dll compatible replacement use the dll
+compiled from Zip 2.32 (released separately) and the examples included
+with that.
+
+25 July 2014 EG

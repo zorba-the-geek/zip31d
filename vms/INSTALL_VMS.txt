@@ -1,0 +1,446 @@
+      INSTALL_VMS.txt -- Zip Installation Supplement for VMS (OpenVMS)
+      ================================================================
+
+   Zip version 3.1.  Revised: 2015-06-10.
+
+------------------------------------------------------------------------
+
+      Unpack the Source Kit(s)
+      ------------------------
+
+   Zip is normally distributed as a Zip archive (which requires some
+kind of unzip program to unpack), or as a gzip-compressed "tar" archive
+(which requires programs like "gzip" and "tar" to unpack).  A Zip
+archive is usually the more convenient form for a VMS user.  If an UnZip
+program is not already available on the target system, pre-built UnZip
+programs for VMS may be found in many freeware collections, and on the
+Info-ZIP server:
+
+      ftp://ftp.info-zip.org/pub/infozip/vms/
+
+   To unpack the Zip source kit, choose a suitable working directory,
+and UnZip the Zip kit there.  For example:
+
+      SET DEFAULT dev:[dir.zip]         ! Some convenient directory.
+      UNZIP zip31.zip                   ! Unpack the Zip source kit.
+
+If the Zip kit is elsewhere, specify its actual location:
+
+      UNZIP dn_ld_dev:[dn_ld_dir]zip31.zip
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      Optional Source Kits
+      --------------------
+
+   Advanced Encryption Standard (AES) Encryption
+   ---------------------------------------------
+
+   To enable support for AES encryption, a separate IZ_AES_WG source kit
+is needed.  On the Info-ZIP FTP server, the IZ_AES_WG source kit should
+be found in:
+
+      ftp://ftp.info-zip.org/pub/infozip/crypt/
+
+The latest kit should be:
+
+      ftp://ftp.info-zip.org/pub/infozip/crypt/iz_aes_wg.zip
+
+but other, older kits may also be available there.  Version
+compatibility information should be included in the IZ_AES_WG
+documentation.  The latest version of that should be:
+
+      ftp://ftp.info-zip.org/pub/infozip/crypt/README_AES_WG.txt
+
+It might be wise to read that before downloading any particular
+IZ_AES_WG kit.
+
+   The IZ_AES_WG kit should be unpacked in the main Zip directory,
+where it should populate the [.aes_wg] subdirectory.  For example, if
+the proper IZ_AES_WG kit is "iz_aes_wg13.zip", then use commands like
+the following:
+
+      SET DEFAULT [.zip31]              ! (If not already there.)
+      UNZIP [-]iz_aes_wg13.zip
+
+   See the "Build" section, below, for details on how to build Zip
+with AES encryption support.
+
+     The IZ_AES_WG code may be too modern for VAX C.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Bzip2 Compression
+   -----------------
+
+   All the source files needed to enable support for the bzip2
+compression method are included in the Zip source kit.  The [.bzip2]
+subdirectory contains a bzip2 (version 1.0.6) source kit, with some
+modifications for better VMS compatibility.  For general information on
+bzip2 compression, or to download a different bzip2 source kit:
+
+      http://www.bzip.org/
+
+   For a more VMS-friendly kit:
+
+      http://antinode.info/dec/sw/bzip2.html
+
+   The Zip builders for VMS will, by default, use the bzip2 source kit
+which is included in the Zip source kit to create the required bzip2
+object library.  The builders can also use an existing bzip2 object
+library, which is supplied by the user.  For details on how to use an
+existing bzip2 object library, or how to disable bzip2 compression
+support, look for IZ_BZIP2 in the "Build" section below.
+
+------------------------------------------------------------------------
+
+      Build
+      -----
+
+   On VMS, two build methods are provided: a DCL command procedure, and
+description files for MMS or MMK.  Both methods must be run from the
+main source directory, not the [.vms] subdirectory.
+
+   A simple build using the command procedure looks like this:
+
+      @ [.vms]build_zip.com
+
+   A simple build using MMS or MMK looks like this:
+
+     MMS /DESCRIP = [.vms]descrip.mms   ! Using MMS.
+     MMK /DESCRIP = [.vms]descrip.mms   ! Using MMK.
+
+   Various options for each build method are explained in comments in
+each main builder file, either [.vms]build_zip.com or
+[.vms]descrip.mms.  Principal build options are described in the
+following section.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      Build Options
+      -------------
+
+   This section describes the principal build options.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Compilers on VAX
+   ----------------
+
+   On VAX, the builders attempt to cope with the various available C
+compilers: DEC/Compaq/HP C, VAX C, or GNU C.  If DEC/Compaq/HP C is not
+available or not desired, comments in each main builder file explain the
+command-line options used to select a different compiler.  Some of the
+more modern optional features may use C language features which VAX C
+does not support.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Large-File Support
+   ------------------
+
+   Support for archives and member files larger than 2GB is available on
+Alpha systems with VMS V7.2 or later (and with a sufficiently new C
+compiler), and on all IA64 systems.  Large-file support is not available
+on VAX.  By default, the builders will enable large-file support where
+it is available.  (Note that Zip versions before 3.1d (BETA) required
+the user to request large-file support explicitly.  Now it must be
+disabled explicitly, if it's not desired.)
+
+      On Alpha, the builders will initially assume that large-file
+      support is available, but will test large-file support before
+      continuing.  If large-file support is not available, the build
+      will fail, and a message will advise the user to add "NOLARGE" to
+      the build command.
+
+   To disable large-file support using the DCL builder, use a command
+like the following:
+
+      @ [.vms]build_zip.com NOLARGE
+
+   Using the MMS or MMK builder (MMS shown):
+
+     MMS /DESCRIP = [.vms]descrip.mms /MACRO = (NOLARGE=1)
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Bzip2 Compression
+   -----------------
+
+   The optional bzip2 compression method is enabled by default, and the
+required source code is included in the Zip source kit.  By default,
+the builders will use the bzip2 source kit in the [.bzip2] subdirectory
+to build the required bzip2 object library.
+
+   To disable bzip2 compression, add the appropriate option to the
+builder command line.  For example:
+
+         @ [.vms]build_zip NOIZ_BZIP2
+      or:
+         MMS /DESC = [.vms] /MACRO = (NOIZ_BZIP2)
+
+   Users who regularly work with multiple Zip versions (or optional
+configurations) can avoid repeatedly building the bzip2 object library
+by manually building a bzip2 object library (with BZ_NO_STDIO defined)
+in some common location.  Then, when building Zip, specify that bzip2
+directory as the value of the MMS macro IZ_BZIP2.  For example:
+
+         @ [.vms]build_zip -
+          IZ_BZIP2=SYS$SYSDEVICE:[UTILITY.SOURCE.BZIP2.BZIP2-1_0_6A_VMS]
+      or:
+         MMS /DESC = [.vms] /MACRO = -
+          IZ_BZIP2=SYS$SYSDEVICE:[UTILITY.SOURCE.BZIP2.BZIP2-1_0_6A_VMS]
+
+   Defining a logical name for the bzip2 directory can simplify commands
+like these:
+
+         DEFINE IZ_BZIP2_106 -
+          SYS$SYSDEVICE:[UTILITY.SOURCE.BZIP2.BZIP2-1_0_6A_VMS]
+
+         @ [.vms]build_zip IZ_BZIP2=IZ_BZIP2_106
+      or:
+         MMS /DESC = [.vms] /MACRO = (IZ_BZIP2=IZ_BZIP2_106)
+
+
+      Note that historically, Zip has been built with the default
+      compiler option, /NAMES = UPPERCASE, while bzip2 is normally built
+      with /NAMES = AS_IS, to avoid name collisions in the bzip2 code.
+      With modern compilers, the "#pragma names" directives in
+      [.vms]bzlib.h will handle these differences without user
+      intervention.  An old compiler (for example, DEC C V4.0-000) will
+      emit complaints %CC-I-UNKNOWNPRAGMA, and will mishandle the bzip2
+      library function names, which will cause the link to fail.  To
+      solve this problem, either build the bzip2 BZ_NO_STDIO object
+      library with /NAMES = UPPERCASE, or else build Zip with
+      /NAMES = AS_IS.  For example:
+
+         @ [.vms]build_zip "CCOPTS=/NAMES=AS_IS" IZ_BZIP2=IZ_BZIP2_106
+      or:
+         MMS /DESC = [.vms] /MACRO = ("CCOPTS=/NAMES=AS_IS", -
+          IZ_BZIP2=IZ_BZIP2_106)
+
+      The compiler will still emit the %CC-I-UNKNOWNPRAGMA complaints,
+      and MMS may emit %MMS-W-GWKACTNOUPD complaints (or, with MMK:
+      %MMK-I-ACTNOUPD), but the link (and the program) should work.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   LZMA and PPMd Compression Methods
+   ---------------------------------
+
+   The optional LZMA and PPMd compression methods (new in Zip version
+3.1) are enabled by default, and the required source code is included
+in the Zip source kit.  The code used to implement these compression
+methods is generally written to newer C language standards than the base
+Info-ZIP code, so some very old compilers may be unable to build Zip
+if these features are enabled.
+
+   To disable LZMA and/or PPMd compression, add the appropriate option
+to the builder command line.  For example:
+
+         @ [.vms]build_zip NOLZMA NOPPMD
+      or:
+         MMS /DESC = [.vms] /MACRO = (NOLZMA=1, NOPPMD=1)
+
+   Note that the LZMA compression code used by Zip currently uses a
+"long long" type which is not available on VAX, so NOLZMA must be
+specified on VAX, or the build will fail.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Advanced Encryption Standard (AES) Encryption
+   ---------------------------------------------
+
+   By default, AES encryption is not enabled.  To enable it, first
+download and unpack the separate IZ_AES_WG source kit, as explained
+above.  With the IZ_AES_WG source kit unpacked into its [.aes_wg]
+subdirectory, add the appropriate AES_WG option to the builder command
+line.  For example:
+
+         @ [.vms]build_zip AES_WG
+      or:
+         MMS /DESC = [.vms] /MACRO = (AES_WG=1)
+
+   The code used to implement AES_WG encryption is generally written to
+newer C language standards than the base Info-ZIP code, so some very old
+compilers may be unable to build UnZip if this feature is enabled.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Traditional Zip Encryption
+   --------------------------
+
+   By default, Traditional Zip encryption is enabled.  To disable it,
+the C macro NO_CRYPT must be defined at build time.  This can be done by
+adding NO_CRYPT to the LOCAL_ZIP symbol/macro.  For example:
+
+         LOCAL_ZIP == "NO_CRYPT"
+         @ [.vms]build_zip
+      or:
+         MMS /DESC = [.vms] /MACRO = ("LOCAL_ZIP=NO_CRYPT")
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      More Complex Build Examples
+      ---------------------------
+
+   When doing complex or multiple builds, note that the MMS (or MMK)
+builders offer a set of CLEAN* targets, which can be used to remove some
+or all old build products (object files, object libraries, executables,
+and so on).  It's usually a good idea to do some kind of "MMS CLEAN"
+before making significant changes to the build options.  The DCL-script
+builder, [.vms]build_zip.com, has no such options, so its users must
+manually clean out any old build products when necessary, including any
+bzip2 products which are created under the [.bzip2] subdirectory.
+
+   Here are some more complex build examples:
+
+   o Build with the large-file option disabled (non-VAX, typically used
+     only on old Alpha systems):
+
+        @ [.vms]build_zip NOLARGE
+     or:
+        MMS /DESC = [.vms] /MACRO = NOLARGE=1
+
+   o Re-link the executables:
+
+        @ [.vms]build_zip NOCOMPILE
+     or
+        MMK /DESC = [.vms] CLEAN_EXE  ! Delete existing executables.
+        MMK /DESC = [.vms]            ! Build new executables.
+
+   o Build from scratch, for debug, getting compiler listings and link
+     maps:
+
+        MMS /DESC = [.vms] CLEAN
+        MMS /DESC = [.vms] /MACRO = (DBG=1, LIST=1)
+
+
+   Another build option, HELP_TEXT, can be used to create formatted,
+plain-text HELP output files.  These files, ZIP.HTX and ZIP_CLI.HTX,
+contain the results of a command like "HELP ZIP..." using the help
+source files for the UNIX-like command line and the VMS-like command
+line, respectively.  For example:
+
+      @ [.vms]build_zip HELP_TEXT
+   or:
+      MMS /DESC = [.vms] HELP_TEXT
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+   Destination Directories
+   -----------------------
+
+   By default, system-architecture-specific files (like objects and
+executables) are placed in separate subdirectories, such as [.ALPHA],
+[.IA64], or [.VAX].  Large-file products get their own subdirectories,
+[.ALPHAL] or [.IA64L].  On VAX, VAX C products are placed in [.VAXV],
+GNU C products in [.VAXG].  If desired, the user may specify some other
+subdirectory, using the PROD option/macro.  For example, to build
+programs without large-file support or any optional compression methods
+in a [.ALPHA_BASIC] subdirectory:
+
+         @ [.vms]build_zip NOLARGE NOIZ_BZIP2 NOLZMA NOPPMD -
+          PROD=ALPHA_BASIC
+      or:
+         MMS /DESC = [.vms] /MACRO = (NOLARGE=1, NOIZ_BZIP2=1, -
+          NOLZMA=1, NOPPMD=1, PROD=ALPHA_BASIC)
+
+   The PROD=dest_dir feature makes it easier to build multiple Zip
+variants with different options using the same source tree.
+
+      Note that if PROD=dest_dir is specified for a build, then it must
+      also be specified for other builder operations, such as TEST or
+      CLEAN, which also need to know which destination directory to use.
+
+      Note that PROD=dest_dir has no effect on any automatically built
+      bzip2 object library, so it's generally safer to use a pre-built
+      bzip2 object library in an external directory when using PROD,
+      especially when using one source tree for different hardware
+      architectures.
+
+   Each product builder announces what the destination directory will be
+when it is run.
+
+   Common files, such as the help library source files (ZIP.HLP for
+the default UNIX-like command-line interface, ZIP_CLI.HLP for the
+VMS-like command-line interface) are placed in the main directory.  With
+a mixed-architecture VMS cluster, the same main directory on a shared
+disk may be used by all system types.  (Using the NOHELP option with
+build_zip.com can keep it from making the same help files repeatedly.)
+Building the help files is detailed below.
+
+------------------------------------------------------------------------
+
+      Test
+      ----
+
+   After a successful build, a "zip -v" or "ZIP_CLI /VERBOSE"
+report can be generated using the builders:
+
+      @ [.vms]build_zip DASHV
+      @ [.vms]build_zip SLASHV
+   or:
+      MMS /DESC = [.vms] DASHV
+      MMS /DESC = [.vms] SLASHV
+
+   If "PROD=dest_dir" was specified for the build, then it must be
+specified here, too.  (On VAX, also specify same the compiler option:
+VAXC, ...)  Other normal build options are allowed, but not required.
+
+------------------------------------------------------------------------
+
+      Install
+      -------
+
+   To complete the installation, the executables may be left in place,
+or moved (or copied) to a convenient place.  While other methods (like
+DCL$PATH) exist, it is usual to define symbols to make the Zip
+executables available as foreign commands.  These symbol definitions may
+be placed in a user's SYS$LOGIN:LOGIN.COM, or in a more central
+location, like SYS$MANAGER:SYLOGIN.COM.  Typical symbol definitions
+might look like these:
+
+   ZIP :== $ dev:[dir]ZIP.EXE           ! UNIX-like command line.
+or:
+   ZIP :== $ dev:[dir]ZIP_CLI.EXE       ! VMS-like command line.
+
+On a non-VAX system, different symbols could be defined for the
+small-file and large-file programs.  For example:
+					
+   ZIPS  :== $ dev:[dir.ALPHA]ZIP.EXE   ! ZIPS = small-file Zip.
+   ZIP*L :== $ dev:[dir.ALPHAL]ZIP.EXE  ! ZIP[L]= large-file Zip.
+
+
+   The builders create help library source files, ZIP.HLP and
+ZIP_CLI.HLP.  These may be incorporated into an existing help library,
+or a separate Zip help library may be created using commands like
+the following, using either ZIP.HLP (as shown) or ZIP_CLI.HLP:
+
+      LIBRARY /HELP dev:[dir]existing_library.HLB ZIP.HLP
+
+      LIBRARY /CREATE /HELP ZIP.HLB ZIP.HLP
+
+Zip help may then be accessed from a separate Zip help library using
+a command like:
+
+      HELP /LIBRARY = device:[directory]ZIP.HLB
+
+   For greater ease, the user (or system manager) may define a
+HLP$LIBRARY logical name to allow the HELP utility to find the Zip
+help library automatically.  See HELP HELP /USERLIBRARY for more
+details. The command procedure [.vms]hlp_lib_next.com may be used to
+determine the next available HLP$LIBRARY logical name, and could be
+adapted to define a HLP$LIBRARY logical name for a Zip help library.
+
+   The builders also create VMS message files, ZIP_MSG.EXE, in the
+destination directory with the program executables.  A user may gain DCL
+access to the Zip error messages using a command like:
+
+      SET MESSAGE device:[directory]ZIP_MSG.EXE
+
+For system-wide access, the system manager may move or copy this file to
+SYS$MESSAGE, although this could cause some confusion if multiple
+versions of Zip are used on the system, and their error message source
+files differ.
+

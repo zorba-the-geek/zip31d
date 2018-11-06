@@ -1,0 +1,38 @@
+readVc6Ex.txt - Contents of the "windll/examples/vc6" directory
+
+On Windows open this file in WordPad, GEdit, or similar.
+
+This directory contains Visual Studio 6 C project examples for using
+the new Zip 3.1 zip32_lib.lib static and zip32_dll.dll dynamic
+libraries.  See comments in source files for details.
+
+- c_dll_ex contains the DLL example.  Once the example is compiled,
+  zip32_dll.dll must be in the program startup directory or on the
+  user PATH to run the example.
+
+- c_lib_ex contains the LIB example.  To compile the example, you must
+  place the compiled library in the startup directory.
+
+The Zip 3.1 libraries are not backward compatible with either the Zip
+2.32, the Zip 3.0, or the Zip 3.1 beta libraries.  This was necessary
+to finally clean up the interface to make it more consistent and intuitive
+(hopefully) and to add in hooks for later backward compatible expansion.
+These libraries also have an updated version reporting feature that can be
+used to verify compatibility and confirm supported features at run time.
+See the example code in this directory for how to use these new features.
+
+See WhatsNew_DLL_LIB.txt for more on the updated LIB/DLL interface.
+
+It should be simple to convert a program using the old zip32 libraries to
+the Zip 3.1 libraries but the program may need some changes.  For a zip32
+compatible replacement use the dll and lib compiled from Zip 2.32 (released
+separately).
+
+Note that the files may be saved in unix format with carriage returns
+stripped.  These must be restored before the project can be successfully
+used.  This can be done by using the -a option to unzip.  Another way to
+do this is to open each file in WordPad, select and cut a line, paste
+the line back, and save the file.  This will force WordPad to change the
+line ends in the entire file.  Newer versions of WordPad may not do this.
+
+18 September 2014

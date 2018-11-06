@@ -1,0 +1,1 @@
+Put zip32_dll.lib here to compile the DLL example.

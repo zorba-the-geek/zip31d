@@ -1,0 +1,1 @@
+Put zip32_dll.dll here to run the DLL example from this directory.

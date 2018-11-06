@@ -1,0 +1,213 @@
+
+z/OS is IBM's follow-on to both the OS/390 and MVS operating systems.
+
+The UNIX System Services element of z/OS is a UNIX operating environment,
+implemented within the z/OS operating system. It is also known as z/OS UNIX.
+The z/OS support enables two open systems interfaces on the z/OS operating
+system: an application programming interface (API) and an interactive shell
+interface.
+
+z/OS UNIX System Services provides:
+- XPG4 UNIX 1995 conformance
+- Assembler callable services
+- TSO/E commands to manage the file system
+- ISPF shell environment
+
+The z/OS UNIX environment complies at the source and operational level with
+the POSIX open system environment (POSIX OSE), XOPEN and related standards.
+This includes:
+- A POSIX (Born) shell
+- A standard UNIX build environment and utilities
+- UNIX-style POSIX filesystems
+  - Older form is Hierarchial File System (HFS), where the filesystem storage is
+    contained within a z/OS MVS PDSE library.
+  - Newer form is z File System (zFS), where the filesystem storage is contained
+    within one or more z/OS disk volumes.  Unrelated to Solaris ZFS filesystem.
+
+Like the traditional z/OS MVS environment, the z/OS UNIX environment uses an
+EBCDIC-based character set by default.  The standard z/OS UNIX EBCDIC code page
+is IBM-1047, while the standard z/OS MVS EBCDIC code page is IBM-037.
+
+The z/OS UNIX port of InfoZIP ZIP is a fairly straight-forward variation of the
+ZIP generic unix port, using the EBCDIC character set.
+- The standard line termination character for EBCDIC POSIX text files is the
+  Newline (NL, 0x15) character.
+  - This reflects the influence of the z/VM environment on z/OS UNIX.
+  - The EBCDIC Carriage Return (CR, 0x0D) and Line Feed (LF, 0x25) characters
+    derive from the legacy MVS serial communications (BiSync) telecomunications
+    interfaces, and are not normally used in z/OS UNIX text files.
+
+While the z/OS UNIX environment also provides some rather limited support for
+ASCII programs and files, this support is not used by the z/OS UNIX port of
+InfoZIP ZIP.
+
+ZIP for z/OS UNIX
+-----------------
+Allows you to create ZIP archives from the z/OS UNIX System Services shell
+command prompt.  This port uses standard Unix-style I/O routines and only
+supports POSIX-style files in HFS or zFS filesystems.
+
++----------------------------------------------------------------------------+
+| NOTE: This port does *NOT* work with non-POSIX (traditional MVS) files.    |
+|                                                                            |
+|       A new z/OS port is under development that will operate in both z/OS  |
+|       UNIX and MVS environments, and support both POSIX and non-POSIX      |
+|       z/OS files.                                                          |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Usage
+-----
+By default, ZIP does not perform character-set translation, but has
+options to make it easy to convert text files to be compatible with
+other systems
+  zip   zipfile list         # add the files in 'list' to archive 'zipfile'
+  zip -a zipfile list        # same as above, but translate files to ASCII
+  zip -al zipfile list       # same as above, translate linefeeds to DOS style
+  zip -all zipfile list      # same as '-a', translate linefeeds to UNIX style
+
+Build process
+-------------
+This port is normally built using the z/OS UNIX make and cc utilities, as
+follows:
+
+* Determine the z/OS POSIX directory where the build is to be performed,
+  and create as required.
+
+* Use a binary-mode transfer utility such as FTP or SFTP to transport the ZIP
+  source archive file to that directory.  The archive file to be used depends on
+  the utility that is available to unpack the archive.
+
+  * One may choose to use an existing or new installation of the z/OS UNIX
+    InfoZIP UNZIP utility.
+
+    Upload the zip31.zip file, and issue the following command at the z/OS
+    UNIX shell prompt to extract the ZIP source archive files, with text files
+    in EBCDIC:
+
+      unzip -a zip31
+
+  * In the absence of InfoZIP UNZIP, one will use the zip31.tar.gz GNU zip
+    archive.
+
+    * If the z/OS UNIX port of  GNU zip (gzip) is available, upload the archive
+      in binary and issue the command
+
+        gzip -d zip31.tar.gz
+
+      and create the zip31.tar file.
+
+    * Otherwise, this command must be issued on a convenient workstation and
+      the resulting zip31.tar file uploaded in binary to z/OS UNIX.
+
+    Unpack the archive and convert to EBCDIC with pax
+
+      pax -r -ofrom=ISO8859-1,to=IBM-1047 -f ../zip31.tar
+
+* Switch to the resulting zip31 directory.
+
+* Use the cat command on a sample of the source files to verify that they are
+  encoded in EBCDIC and suitable for input to the IBM z/OS XL C compiler.
+
+* Compile and link the z/OS UNIX ZIP utility, using make and cc:
+
+    make -f unix/Makefile generic
+
+  This will generate the main zip executable, as well as the other utility
+  executables (zipsplit, zipcloak, and zipnote).
+
+  Alternatively, one can use the GNU make (gmake utility) and cc:
+
+    gmake -f unix/Makefile generic
+
+* All object files and executables are built in the [ZIP_ROOT] (zip31)
+  directory.  To remove these file in preparation for a new build, enter:
+
+    make -f unix/Makefile clean
+
+  or
+
+    gmake -f unix/Makefile clean
+
+* Optionally, InfoZIP ZIP can be built with WinZIP-compatible AES encryption
+  support (based on Dr Brian Gladman's AES libraries).
+
+    make -f unix/Makefile generic AES_WG=1
+
+  or
+
+    gmake -f unix/Makefile generic AES_WG=1
+
++----------------------------------------------------------------------------+
+| Overview of Changes for z/OS UNIX port                                     |
++----------------------------------------------------------------------------+
+ZIP 3.1 changes by Al Dunsmuir (03 Aug 2011)
+
+The z/OS UNIX port is based on (and replaces) the original updated ZIP 3.1
+"OS/390" port by Bob Woodside.
+
+- Replaced make target for _.o files by standard file-pattern rule that
+  is supported by both make and gmake
+
+- Improve configure support for the IBM compilers (z/OS, z/VM. AIX. iSeries)
+
+- Add support for listing file generation, with LIST=1 make parm
+  - Generates appropriate options to generate listings, and switches from
+    the generic cc driver to zos/zcc and zos/zld shell scripts that support
+    compile and link listing capture (respectively).
+
+- Eliminate make zos and os390 targets
+
+- Replaced all z/OS UNIX-specific (#ifdef OS390) preprocessor statements by
+  the more explicit (#ifdef ZOS_UNIX)
+
+- Replaced unix/README.OS390 by unix/README.zOS 
+
++----------------------------------------------------------------------------+
+| Overview of Changes for OS/390 port (replaced by z/OS UNIX port)           |
++----------------------------------------------------------------------------+
+ZIP 3.1 changes by Bob Woodside (12 Aug 2009)
+
+The OS/390 port is treated as a variant of the Unix port.  EBCDIC support
+was already implemented for CMS/MVS-batch ports.  The specific changes I
+made are summarized below.
+
+unix/Makefile - zip uses a unusual _.o target which IBM's make can't handle.
+Since the Makefile has a macro called MAKE that is used for a recursive
+call to make, I changed the MACRO to call "gmake" - GNU's make - which
+can handle the _.o target.  If you don't have GNU make, you can
+workaround by manually applying symlinks from whatever.c to whatever_.c.
+Alternatively, the whatever_.o files could be explicitely added for os390.
+
+I added an os390 target with appropriate defines.
+
+zipup.c - added code (#ifdef OS390) to convert test to ASCII if -a flag
+was set.
+
+zip.c - changed logic which always used DOS-style newlines when -a was
+set to be consistent with other port (DOS newlines if -l option)
+
+zipfile.c - miscellaneous changes to force storing file names and
+descriptions in ASCII in the zip directory. This makes zip files
+portable  across all platforms. This in turn meant names did not
+need to be translated when displaying messages.
+
+zip.h - strtoasc was missing a closing parenthesis.
+
+ebcdic.h - changed translation table to be consistent with current IBM
+recommendations - exact same changes to ebcdic.h as in my unzip port.
+
+tailor.h - define huge/far/near to be empty
+
+unix/unix.c - substantial changes to deal with mode flags.  Under
+the current XOPEN standards, some of the traditional unix file mode
+bits need not be in fixed locations, but standard access macros must be
+available to access the values.  The old unix.c code just picked up these
+values and saved them as-is where unzip interpreted them.  Existing
+Unix system provided the macros for XOPEN compliance, but left the flags
+in their traditional locations.  OS/390 has a brand new filesystem which
+is XOPEN compliant without revealing the positions of these flags.
+To create the bitmask in the same format unzip expects, the macros are
+tested one-by-one to set the appropriate bits.  This same logic should
+work on any XOPEN system, but takes more instructions (I did test this
+logic on Linux).

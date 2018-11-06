@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# zos/zcpp - Zip 3.1, UnZip 6.10                                    09 Sept 2011
+#
+# Copyright (c) 2011 Info-ZIP.  All rights reserved.
+#
+# See the accompanying file LICENSE, version 2009-Jan-2 or later
+# (the contents of which are also included in zip.h) for terms of use.
+# If, for some reason, all these files are missing, the Info-ZIP license
+# also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+#
+# zcpp: In the z/OS UNIX Systems Services or z/VM OpenEdition environments,
+#       invoke the IBM XL C compiler driver program in preprocessor mode.
+#       Capture stdout, and check for warning or error messages.  Return
+#       a non-zero result if any were detected.
+#
+#       This wrapper script is required to work around a bug in the XL C
+#       compiler driver program, where an unexpected 0 result is returned
+#       for the following case
+#
+#  (infozip)$cat conftest_ph.c
+#  #include <sys/param.h>
+#
+#  (infozip)cc -E conftest_ph.c
+#  ??=pragma filetag("IBM-1047")
+#  ??=pragma nomargins nosequence
+#  WARNING CCN3296 ./conftest_ph.c:1     #include file <sys/param.h> not found.
+#  FSUM3065 The COMPILE step ended with return code 4.
+
+# Determine shell name
+zcppname=$(basename "$0")
+
+# Save zcpp options
+zcppopts=$@
+
+# Emit usage if invoked with no operands
+if [ $# = 0 ]; then
+  echo usage: "$zcppname pgm [XL_C_options] srcfile.c"
+  echo Checks C preprocessor stderr and sets useful exit code
+  exit 1
+fi
+
+# Bypass the XL C driver name
+shift
+
+# Escape all parentheses and "strings" in the zcpp options
+zcppopts=$(echo "$zcppopts" | sed -e "s/(/\'(/g"     \
+                                  -e "s/)/)\'/g"     \
+                                  -e "s/=\"/=\'\"/g" \
+                                  -e "s/\" /\"\' /g" )
+
+# Set the listing file path name
+lstname=$targdir/$targname.lst
+
+# Set the error file path name
+errname='./zcpp_stderr'
+
+# Remove any previous output files
+rm -f $errname
+
+# Invoke the C compiler capturing stderr
+eval "$zcppopts 2>${errname}"
+
+# Check the C compiler stderr output for failure messages
+rc=0
+if [ -n "${errname}" ]; then
+  if cat "${errname}" | grep "WARNING" >/dev/null 2>&1 ; then
+    rc=1
+  elif cat "${errname}" | grep "ERROR" >/dev/null 2>&1 ; then
+    rc=1
+  fi
+fi
+
+# Remove current output files
+rm -f $errname
+
+# Return useful result
+exit $rc

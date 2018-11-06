@@ -1,0 +1,294 @@
+                                                30 November 2010.  SMS.
+
+                      BZIP2 1.0.6a Changes for VMS
+                      ============================
+
+------------------------------------------------------------------------
+
+      Disclaimer
+      ----------
+
+   No claims of any sort are made herein.  The main BZIP2 developer
+seems indifferent to this effort.  Any suggestions for improving the
+code in the VMS-specific sections are welcome, but low expectations are
+more realistic than high ones.
+
+------------------------------------------------------------------------
+
+      Description
+      -----------
+
+   This note accompanies a quick VMS port of BZIP2 version 1.0.6, a
+freely available data compressor.  The most obvious features seem to
+work, but many have not been tested.
+
+   Built and tested (slightly) in these environments:
+
+OpenVMS Alpha V8.3, HP C V7.3-009.
+
+OpenVMS IA64 V8.3-1H1, HP C V7.3-019.  (See note below.)
+
+OpenVMS VAX V7.3, Compaq C V6.4-005.
+
+------------------------------------------------------------------------
+
+      Home source URL
+      ---------------
+
+http://www.bzip.org
+
+------------------------------------------------------------------------
+
+      News
+      ----
+
+   Version 1.0.6a  2010-11-29
+   --------------------------
+
+- General update to version 1.0.6.
+
+- Output file names are now adjusted after suffix removal, to avoid
+  undesired dot retention.  For example, the result of expanding
+  "fred^.tar.bz2" should now be "fred.tar", not "fred^.tar.".
+
+- Kits are now packaged on an ODS5 file system, obviating
+  [.VMS]VMS_NAME_FIX.SH, which is no longer included.
+
+- [.VMS]VMS.C and [.VMS]VMS.H have been renamed to [.vms]vms_misc.c and
+  [.vms]vms_misc.h, respectively, to accomodate changes to the builders
+  which were made to deal with complexities involving object module
+  names for source files with lower-case names.
+
+- The builders now build DECC_VER.EXE automatically.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.5a  2008-03-20
+   --------------------------
+
+- General update to version 1.0.5.  No VMS-specific changes.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.4b  2007-04-06
+   --------------------------
+
+- Changed BZIP2.C, [.VMS]VMS.C, and [.VMS]VMS.H to accomodate older VMS
+  and/or C RTL versions, by adding conditional replacement functions for
+  fchmod(), fchown(), strcasecmp(), and strdup().
+- Changed [.VMS]DESCRIP_SRC.MMS to let the user more easily build the
+  BZ_NO_STDIO object library (LIBBZ2_NS.OLB) from modules compiled
+  without the default option, /NAMES = AS_IS.  To do this, specify the
+  MMS macro CFLAGS_NAMES_NS defined to null (MMS /MACRO =
+  "CFLAGS_NAMES_NS").  Because of name collisions, only the BZ_NO_STDIO
+  object library may be built without case-sensitvity.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.4a  2007-03-22
+   --------------------------
+
+- General update to version 1.0.4.
+- Minor changes to VMS builders.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.3c  2006-12-29
+   --------------------------
+
+- Changed the VMS builders to create an additional (variant) object
+  library, LIBBZ2_NS.OLB, using objects built with the C macro
+  BZ_NO_STDIO, which may be needed by some applications.
+- Builders were ignoring most command-line C macros (spurious use of the
+  MMS macro "CDEFS_UNX" instead of "CDEFS").
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.3b  2004-10-07
+   --------------------------
+
+- Added code to the access callback function to set the "sequential
+  access only" (SQO) flag.  This avoids excessive lock time when writing
+  to a file system with highwater marking enabled.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+   Version 1.0.3a  2004-10-04
+   --------------------------
+
+- Added on VMS a version suffix ("a") for the main program, BZIP2.
+
+- Changed on VMS to use "BZIP2_OPTS" and "BZIP_OPTS" as option
+  "environment variables" (instead of "BZIP2" and "BZIP") to avoid
+  colliding with foreign command symbols.
+
+- Changed on VMS to use "-bz2" and "-out" instead of ".bz2" and ".out"
+  on new compressed and uncompressed file names, respectively.
+
+- Added "-bz" and "-bz2" to the list of recognized suffixes for
+  compressed file names.  Changed suffix recognition on VMS to be
+  case-insensitive and to ignore file versions.
+
+- Added VMS wild-card file name expansion on VMS.
+
+- Added non-default RMS parameter setting on VMS for better I/O speed.
+
+- Command line case is preserved if SET PROCESS /PARSE_STYLE = EXTENDED.
+
+- Added MMS/MMK builder files.
+
+------------------------------------------------------------------------
+
+      Changes to Source Files
+      -----------------------
+
+
+   Files new for VMS (all in [.vms]):
+
+      collect_deps.com   Dependency collector for descrip_mkdeps.mms.
+
+      decc_ver.c         Program to show versions: VMS, C compiler, C
+                         run-time library.
+
+      descrip.mms        Main MMK or MMS description ("make") file.
+
+      DESCRIP_DEPS.MMS   Source dependency description file.
+
+      descrip_mkdeps.mms Source dependency generator description file.
+
+      descrip_src.mms    Source list description file.
+
+      mod_dep.com        Dependency modifier for descrip_mkdeps.mms.
+
+      my_module_name.h   "#pragma module" directive, used to obtain
+                         upper-case object module names from lower-case
+                         source files.
+
+      vms_misc.c         Various VMS-specific code: VMS file name
+                         manipulation, file name wildcard expansion,
+                         open callback function for better RMS
+                         parameters.
+
+      vms_misc.h         VMS-specific header file.
+
+      vms_notes.txt      These notes.
+
+
+   Files modified for VMS:
+
+      bzip2.c            Various VMS-specific changes: version suffix,
+                         use of a file open callback function and other
+                         file open changes, a new "#if BZ_VMS"
+                         conditional code section, new file name
+                         suffixes ("-bz2", "-bz", "-out"),
+                         case-insensitive file name comparison, last-dot
+                         adjustment after file name suffix removal.
+
+      bzip2recover.c     Added a declaration of "verbosity".
+
+      bzlib.c            Added new functions, BZ2_bzlibVersionBase() and
+                         BZ2_bzlibVersionDate()
+
+      bzlib.h            Added prototypes for new functions in bzlib.c.
+
+      bzlib_private.h    Changed to "#include <string.h>"
+                         unconditionally.
+                         Restructured the BZ_VERSION macro into separate
+                         BZ_VERSION_BASE and BZ_VERSION_DATE macros (for
+                         use with changes in bzlib.c).
+
+------------------------------------------------------------------------
+
+      Instructions
+      ------------
+
+   Extract the files from the distribution kit.  The kit includes
+objects and executables for Alpha, IA64, and VAX, in the corresponding
+host-specific subdirectories.
+
+   For details on the MMS/MMK builder, see the comments in
+[.vms]descrip.mms.  The build must be done from the main directory, not
+the [.vms] subdirectory.  The basic operations look like these (MMS
+shown, MMK similar):
+
+      SET DEFAULT [.bzip2-1_0_6a_vms]
+
+      MMS /DESC = [.vms] CLEAN          ! Deletes all object, list, map,
+                                        ! and executable files for the
+                                        ! current CPU type (small-file).
+
+      MMS /DESC = [.vms]                ! Builds the small-file object
+                                        ! libraries and executables.
+
+      MMS /DESC = [.vms] TEST           ! Runs the tests (small-file
+                                        ! executable shown).  See IA64
+                                        ! note below.
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1 CLEAN ! Deletes all object,
+                                                ! list, map, and
+                                                ! executable files for
+                                                ! the current CPU type
+                                                ! (large-file, non-VAX).
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1       ! Builds the large-file
+                                                ! object libraries and
+                                                ! executables (non-VAX).
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1 TEST  ! Runs the tests
+                                                ! (large-file
+                                                ! executable, non-VAX).
+
+------------------------------------------------------------------------
+
+      Note for VMS IA64 - Possible Data Corruption
+      --------------------------------------------
+
+   There appears to be an optimizer problem with the HP C compilers
+identifying themselves as follows (and perhaps others):
+
+      HP C S7.1-013 on OpenVMS IA64 V8.2
+      HP C V7.2-001 on OpenVMS IA64 V8.2-1
+
+The problem appears to be solved in:
+
+      HP C V7.2-022 on OpenVMS IA64 V8.3
+      
+This problem causes the tests to fail ("bzip2/libbzip2: internal error
+number 3005.  [...]").  Because this problem will cause data corruption,
+it's important to run the tests before trusting this program and/or its
+object libraries.  A work-around which appears to be effective is to
+compile huffman.c with /OPTIMIZE = LEVEL = 1.  One way to do this is
+shown below.
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1       ! Large-file shown.
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1 TEST  ! If this fails:
+
+      DELETE [.IA64L]HUFFMAN*.OBJ;*             ! For small-file: [.IA64].
+
+      MMS /DESC = [.vms] /MACRO = ( LARGE=1, -  ! Special re-compile and
+       "CCOPTS=/OPTIMIZE=LEVEL=1" )             ! re-link.
+
+      MMS /DESC = [.vms] /MACRO = LARGE=1 TEST  ! Re-test.
+
+------------------------------------------------------------------------
+
+   The accompanying source kit may suffer from storage on an ODS2 file
+system, which does not preserve case or allow multiple dots in a file
+name.  Building this kit should work on VMS, but it may be expected to
+fail on other systems.  To use this kit on a non-VMS system, the files
+may need to be renamed to restore their original mixed-case and/or
+multi-dot names.  The UNIX shell script "vms_name_fix.sh" (or something
+like it) should do the job.
+
+   When reporting problems, especially build problems, with BZIP2 for
+VMS, it is often useful to reveal precise compiler, run-time library,
+and VMS version information.  The program decc_ver.c (included in the
+kit) is intended to make that easier.
+
+------------------------------------------------------------------------
+
+   Steven M. Schweda               (+1) 651-699-9818  (voice)
+   382 South Warwick Street        sms@antinode.info
+   Saint Paul  MN  55105-2547
+

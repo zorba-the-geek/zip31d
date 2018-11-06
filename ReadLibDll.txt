@@ -1,0 +1,66 @@
+ReadLibDll.txt - Readme for Zip LIB and DLL
+
+On Windows open with WordPad, GEdit, or similar to adjust for Unix line ends.
+Or use "unzip -a" to convert line ends.
+
+The Zip 3.1 source kit allows building a static library (LIB) and a dynamic
+library (DLL).  Currently the dynamic library is only available on Windows,
+while the static library is available on Unix, VMS, and Windows.  Specifically:
+
+libizzip.a       - Zip 3.1 static library for Unix.  This is compiled using the
+                   standard make script and specifying the library binary as
+                   the output target (BINS=L):
+                      make -f unix/Makefile BINS=L generic
+
+zip32_lib.lib    - Zip 3.1 static RELEASE library for Windows.  This can be
+                   built using the Visual Studio 6 and Visual Studio 2010
+                   projects in the windll/vc6 and windll/vc10 directories.
+
+zip32_libd.lib   - Debug version of zip32_lib.lib.  When linking to the LIB,
+                   the version linked to should match how the application is
+                   built, e.g. an application compiled with DEBUG should link
+                   to the DEBUG version of the Zip static library.  Mixing
+                   DEBUG and RELEASE versions may result in unexpected crashes.
+
+zip32_dll.dll    - Zip 3.1 dynamic library for Windows.  Built using projects
+                   in the windll/vc6 and windll/vc10 directories.
+
+zip32_dll.lib    - Static library to set up linkages to zip32_dll.dll.  This
+                   is built when zip32_dll.dll is built.
+
+Included in this source kit are some example applications that demonstrate
+use of the LIB and DLL.  These include:
+
+izzip_example.c  - A C example for Unix and VMS.  Follow the build instructions
+                   in the comments of this file.  Links to libizzip.a to build
+                   a zip command line application lookalike.  This is the only
+                   example using libizzip.a.
+
+windll/examples/ - Includes Windows example application projects for Visual
+                   Studio 6 (tested on Windows XP) and Visual Studio 2010
+                   (tested on Windows 7).  These examples use zip32_lib.lib
+                   and zip32_dll.dll.
+
+     windll/examples/vc6    - Example C LIB and DLL apps for VS 6.  These are
+                              simple command line zip lookalike programs.
+
+     windll/examples/vc10   - Example C LIB and DLL apps for VS 2010.  These
+                              are simple zip lookalike programs.
+
+     windll/examples/vb6    - Demonstrates how the new Zip interface works
+                              with a Visual Basic 6 graphical application.
+                              Most callbacks are demonstrated.  This example
+                              also shows how to call the library without using
+                              64-bit data types.
+
+     windll/examples/vb10   - Demonstrates how the new Zip interface works
+                              with a VB 2010 graphical application.  Most
+                              callbacks are demonstrated.
+
+Additional examples are planned and will be added to the Zip source kit as
+time permits.
+
+See windll/Readme_DLL_LIB.txt and windll/WhatsNew_DLL_LIB.txt for more on
+the DLL and LIB and the new interfaces and callbacks.
+
+Last updated 3 November 2015

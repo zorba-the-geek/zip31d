@@ -1,0 +1,10 @@
+Readvc6.txt
+
+This project builds Zip using Visual Studio 6.  Inclusion of additional
+compression methods (bzip2, LZMA, and PPMd) and AES encryption is
+now controlled by control.h.  See the comments in there.  In particular,
+to include AES encryption the Info-ZIP AES kit must be installed
+and AES enabled in control.h.  See INSTALL for more information.
+
+13 September 2015 EG
+

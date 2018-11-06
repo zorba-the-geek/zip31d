@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{946491AC-5A25-44AB-ACAD-768450AB522B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>zip32_lib</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\..\bzip2;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Debug;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\..\bzip2;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ZIPLIB;WIN32;_WINDOWS;_LIB;WINDLL;NO_ASM;_DEBUG;CONFIG_PLATFORM="$(Configuration)_$(Platform)"</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>..\..\windll32.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>ZIPLIB;WIN32;_WINDOWS;_LIB;WINDLL;NO_ASM;NDEBUG;%(PreprocessorDefinitions);CONFIG_PLATFORM="$(Configuration)_$(Platform)"</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\api.c" />
+    <ClCompile Include="..\..\..\crc32.c" />
+    <ClCompile Include="..\..\..\crypt.c" />
+    <ClCompile Include="..\..\..\deflate.c" />
+    <ClCompile Include="..\..\..\fileio.c" />
+    <ClCompile Include="..\..\..\globals.c" />
+    <ClCompile Include="..\..\..\trees.c" />
+    <ClCompile Include="..\..\..\ttyio.c" />
+    <ClCompile Include="..\..\..\util.c" />
+    <ClCompile Include="..\..\..\win32\nt.c" />
+    <ClCompile Include="..\..\..\win32\win32.c" />
+    <ClCompile Include="..\..\..\win32\win32i64.c" />
+    <ClCompile Include="..\..\..\win32\win32zip.c" />
+    <ClCompile Include="..\..\..\wrap\aescrypt.c" />
+    <ClCompile Include="..\..\..\wrap\aeskey.c" />
+    <ClCompile Include="..\..\..\wrap\aestab.c" />
+    <ClCompile Include="..\..\..\wrap\blocksort.c" />
+    <ClCompile Include="..\..\..\wrap\bzlib.c" />
+    <ClCompile Include="..\..\..\wrap\compress.c" />
+    <ClCompile Include="..\..\..\wrap\crctable.c" />
+    <ClCompile Include="..\..\..\wrap\decompress.c" />
+    <ClCompile Include="..\..\..\wrap\fileenc.c" />
+    <ClCompile Include="..\..\..\wrap\hmac.c" />
+    <ClCompile Include="..\..\..\wrap\huffman.c" />
+    <ClCompile Include="..\..\..\wrap\LzFind.c" />
+    <ClCompile Include="..\..\..\wrap\LzmaEnc.c" />
+    <ClCompile Include="..\..\..\wrap\Ppmd8.c" />
+    <ClCompile Include="..\..\..\wrap\Ppmd8Enc.c" />
+    <ClCompile Include="..\..\..\wrap\prng.c" />
+    <ClCompile Include="..\..\..\wrap\pwd2key.c" />
+    <ClCompile Include="..\..\..\wrap\randtable.c" />
+    <ClCompile Include="..\..\..\wrap\sha1.c" />
+    <ClCompile Include="..\..\..\zbz2err.c" />
+    <ClCompile Include="..\..\..\zip.c" />
+    <ClCompile Include="..\..\..\zipfile.c" />
+    <ClCompile Include="..\..\..\zipup.c" />
+    <ClCompile Include="..\..\windll.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\windll.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\..\..\win32\crc_i386.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </MASM>
+    <MASM Include="..\..\..\win32\match32.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\aes_wg\aes.h" />
+    <ClInclude Include="..\..\..\aes_wg\aesopt.h" />
+    <ClInclude Include="..\..\..\aes_wg\brg_endian.h" />
+    <ClInclude Include="..\..\..\aes_wg\fileenc.h" />
+    <ClInclude Include="..\..\..\aes_wg\hmac.h" />
+    <ClInclude Include="..\..\..\aes_wg\prng.h" />
+    <ClInclude Include="..\..\..\aes_wg\pwd2key.h" />
+    <ClInclude Include="..\..\..\aes_wg\sha1.h" />
+    <ClInclude Include="..\..\..\api.h" />
+    <ClInclude Include="..\..\..\control.h" />
+    <ClInclude Include="..\..\..\crc32.h" />
+    <ClInclude Include="..\..\..\crypt.h" />
+    <ClInclude Include="..\..\..\ebcdic.h" />
+    <ClInclude Include="..\..\..\revision.h" />
+    <ClInclude Include="..\..\..\szip\CpuArch.h" />
+    <ClInclude Include="..\..\..\szip\LzFind.h" />
+    <ClInclude Include="..\..\..\szip\LzHash.h" />
+    <ClInclude Include="..\..\..\szip\LzmaEnc.h" />
+    <ClInclude Include="..\..\..\szip\Ppmd.h" />
+    <ClInclude Include="..\..\..\szip\Ppmd8.h" />
+    <ClInclude Include="..\..\..\szip\SzVersion.h" />
+    <ClInclude Include="..\..\..\szip\Types.h" />
+    <ClInclude Include="..\..\..\tailor.h" />
+    <ClInclude Include="..\..\..\ttyio.h" />
+    <ClInclude Include="..\..\..\win32\nt.h" />
+    <ClInclude Include="..\..\..\win32\rsxntwin.h" />
+    <ClInclude Include="..\..\..\win32\win32zip.h" />
+    <ClInclude Include="..\..\..\win32\zipup.h" />
+    <ClInclude Include="..\..\..\zip.h" />
+    <ClInclude Include="..\..\..\ziperr.h" />
+    <ClInclude Include="..\..\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\windll32.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+</Project>

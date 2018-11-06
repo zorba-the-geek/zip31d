@@ -1,0 +1,147 @@
+.\" =========================================================================
+.\" Copyright (c) 1990-2014 Info-ZIP.  All rights reserved.
+.\"
+.\" See the accompanying file LICENSE, version 2009-Jan-2 or later
+.\" (the contents of which are also included in zip.h) for terms of use.
+.\" If, for some reason, all these files are missing, the Info-ZIP license
+.\" also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+.\" ==========================================================================
+.\"
+.\" zipsplit.1 by E. Gordon for Zip 3.0, 3.1
+.\"
+.TH ZIPSPLIT 1 "6 November 2015 (v3.1)" Info-ZIP
+.SH NAME
+zipsplit \- split a zipfile into smaller zipfiles (v3.1)
+
+.SH SYNOPSIS
+.I zipsplit
+.RB [ \-t ]
+.RB [ \-i ]
+.RB [ \-p ]
+.RB [ \-s ]
+.RB [ \-n\ size ]
+.RB [ \-r\ room ]
+.RB [ \-b\ path ]
+.RB [ \-h ]
+.RB [ \-v ]
+.RB [ \-L ]
+zipfile
+
+.SH ARGUMENTS
+.in +13
+.ti -13
+zipfile  Zipfile to split.
+
+.SH OPTIONS
+.TP
+.PD 0
+.B \-t
+.TP
+.PD
+.B \-\-total-only
+Report how many files it will take, but don't make them.
+
+.TP
+.PD 0
+.B \-i
+.TP
+.PD
+.B \-\-index-file
+Make index (zipsplit.idx) and count its size against first zip file.
+
+.TP
+.PD 0
+.B \-n\ \fRsize
+.TP
+.PD
+.B \-\-split-size\ \fRsize
+Make zip files no larger than "size" (default = 1440k).  Size can be just a
+number or a number followed by a prefix.  For instance, 10k = 10 x 1024 bytes.
+Can use k = 1 KiB, m = 1 MiB, or g = 1 GiB.
+
+.TP
+.PD 0
+.B \-r\ \fRroom
+.TP
+.PD
+.B \-\-room\ \fRroom
+Leave room for "room" bytes on the first disk (default = 0).
+
+.TP
+.PD 0
+.B \-b\ \fRpath
+.TP
+.PD
+.B \-\-outdir\ \fRpath
+Use path for the output zip files.
+
+.TP
+.PD 0
+.B \-q
+.TP
+.PD
+.B \-\-quiet
+Quieter operation, suppress some informational messages.
+
+.TP
+.PD 0
+.B \-p
+.TP
+.PD
+.B \-\-pause
+Pause between output zip files.
+
+.TP
+.PD 0
+.B \-s
+.TP
+.PD
+.B \-\-sequential
+Do a sequential split (maintain entry order) even if it takes more zip files.
+
+.TP
+.PD 0
+.B \-v
+.TP
+.PD
+.B \-\-version
+Show version information.
+
+.TP
+.PD 0
+.B \-L
+.TP
+.PD
+.B \-\-license
+Show software license.
+
+.TP
+.PD 0
+.B \-h
+.TP
+.PD
+.B \-\-help\ \ \ 
+Show a short help.
+
+.TP
+.PD 0
+.B \-hh
+.TP
+.PD
+.B \-\-more-help
+Show more help.
+
+.SH DESCRIPTION
+.I zipsplit
+reads a zipfile and splits it into smaller zipfiles.
+
+.SH EXAMPLES
+To be filled in.
+
+.SH BUGS
+Does not yet support writing large (> 2 GB) or split archives.
+
+.SH SEE ALSO
+zip(1), unzip(1)
+.SH AUTHOR
+Info-ZIP

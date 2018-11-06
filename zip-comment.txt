@@ -1,0 +1,13 @@
+Info-ZIP Zip source kit,  Version 3.1d (BETA) 2015-11-15.
+
+Zip -- Package and compress (archive) files
+
+See enclosed file LICENSE for terms and conditions.
+See README and INSTALL for additional information and
+installation instructions.  See WHATSNEW for feature
+list and bug fixes.
+
+For more on Info-ZIP Zip and UnZip, and latest versions:
+    http://www.info-zip.org/pub/infozip/
+    http://sourceforge.net/projects/infozip/
+

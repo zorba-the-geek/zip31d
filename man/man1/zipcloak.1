@@ -1,0 +1,152 @@
+.\" =========================================================================
+.\" Copyright (c) 1990-2015 Info-ZIP.  All rights reserved.
+.\"
+.\" See the accompanying file LICENSE, version 2009-Jan-2 or later
+.\" (the contents of which are also included in zip.h) for terms of use.
+.\" If, for some reason, all these files are missing, the Info-ZIP license
+.\" also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+.\" ==========================================================================
+.\"
+.\" zipcloak.1 by E. Gordon for Zip 3.0, 3.1
+.\"
+.TH ZIPCLOAK 1 "6 November 2015 (v3.1)" Info-ZIP
+.SH NAME
+zipcloak \- encrypt entries in a zipfile (v3.1)
+
+.SH SYNOPSIS
+.I zipcloak
+.RB [ \-d ]
+.RB [ \-b\ path ]
+.RB [ \-O file ]
+.RB [ \-Y em ]
+.RB [ \-h ]
+.RB [ \-v ]
+.RB [ \-L ]
+zipfile
+
+.SH ARGUMENTS
+.in +13
+.ti -13
+zipfile  Zipfile to encrypt entries in
+
+.SH OPTIONS
+.TP
+.PD 0
+.B \-b\ \fPpath
+.TP
+.PD
+.B \-\-temp\-path \fPpath
+Use the directory given by path for the temporary zip file.
+
+.TP
+.PD 0
+.B \-d
+.TP
+.PD
+.B \-\-decrypt
+Decrypt encrypted entries (copy if given wrong password).
+
+.TP
+.PD 0
+.B \-h
+.TP
+.PD
+.B \-\-help\ 
+Show a short help.
+
+.TP
+.PD 0
+.B \-L
+.TP
+.PD
+.B \-\-license
+Show software license.
+
+.TP
+.PD 0
+.B \-O\ \fPpath
+.TP
+.PD
+.B \-\-output\-file\ \fPzipfile
+Write output to new archive zipfile, leaving original archive as is.
+
+.TP
+.PD 0
+.B \-q
+.TP
+.PD
+.B \-\-quiet
+Quiet operation.  Suppresses some informational messages.
+
+.TP
+.PD 0
+.B \-v
+.TP
+.PD
+.B \-\-version
+Show version information.
+
+.TP
+.PD 0
+.B \-Y\ \fPem
+.TP
+.PD
+.B \-\-encryption\-method\ \fPem
+Set the encryption method.  Supported methods are \fBTraditional\fP
+(weak), and WinZip-compatible AES (strong) with various key lengths:
+\fBAES128\fP, \fBAES192\fP, and \fBAES256\fP.  AES encryption must be
+enabled at build time, and requires a compatible Info-ZIP AES encryption
+kit.  (See INSTALL in the \fBzip\fR source kit for more information.)
+An AES-capable UnZip program is needed to extract AES-encrypted entries.
+
+.SH DESCRIPTION
+.I zipcloak
+encrypts all unencrypted entries in the zipfile.  This is the default action.
+
+.TP
+The \-d option is used to decrypt encrypted entries in the zipfile.
+
+.TP
+\fBzipcloak\fR defaults to using original zip encryption, which is
+considered weak.  Use of AES encryption is recommended.
+
+.TP
+Traditional (ZipCrypto) encryption notice:
+
+The encryption code of this program is not copyrighted and is put in
+the public domain.  It was originally written in Europe and can be freely
+distributed from any country including the U.S.A.  (Previously if this
+program was imported into the U.S.A, it could not be re-exported from
+the U.S.A to another country.)  See the file README.CR included in the
+source distribution for more on this.  Otherwise, the Info-ZIP license
+applies.
+
+.TP
+AES encryption notice (applies when AES encryption included):
+
+This distribution includes cryptographic software.  The country in which
+you currently reside may have restrictions on the import, possession, use,
+and/or re-export to another country, of encryption software.  BEFORE using
+any encryption software, please check your country's laws, regulations and
+policies concerning the import, possession, or use, and re-export of
+encryption software, to see if this is permitted. See
+<http://www.wassenaar.org/> for more information.
+
+The U.S. Government Department of Commerce, Bureau of Industry and Security
+(BIS), has classified this software as Export Commodity Control Number
+(ECCN) 5D002.C.1, which includes information security software using or
+performing cryptographic functions and makes it eligible for export under
+the License Exception ENC Technology Software Unrestricted (TSU) exception.
+
+.SH EXAMPLES
+To be added.
+
+.SH BUGS
+Large files (> 2 GB) and large archives not yet supported.
+
+Split archives not yet supported.
+
+.SH SEE ALSO
+zip(1), unzip(1)
+.SH AUTHOR
+Info-ZIP

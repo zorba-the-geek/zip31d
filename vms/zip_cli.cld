@@ -1,0 +1,331 @@
+	Module		ZIP_CLITABLE
+	Ident		"03-110"        ! /* 2015-03-24 SMS. */
+
+!-----------------------------------------------------------------------
+! Copyright (c) 1997-2015 Info-ZIP.  All rights reserved.
+!
+! See the accompanying file LICENSE, version 2009-Jan-2 or later (the
+! contents of which are also included in zip.h) for terms of use.  If,
+! for some reason, all these files are missing, the Info-ZIP license
+! may also be found at: ftp://ftp.info-zip.org/pub/infozip/license.html
+!-----------------------------------------------------------------------
+
+Define	Verb		ZIP
+	Parameter	P1, Label=ZIPFILE, Prompt="Zip file"
+	Parameter	P2, Label=INFILE, VALUE(list), Prompt="Files to Zip"
+	Qualifier	DELETE, NonNegatable
+	Qualifier	FRESHEN, NonNegatable
+	Qualifier	MOVE, NonNegatable
+	Qualifier	UPDATE, NonNegatable
+	Qualifier	EXCLUDE, NonNegatable, VALUE(required, list)
+	Qualifier	INCLUDE, NonNegatable, VALUE(required, list)
+	Qualifier	EXLIST, NonNegatable, VALUE(type=$FILE, required)
+	Qualifier	INLIST, NonNegatable, VALUE(type=$FILE, required)
+	Qualifier	ADJUST_OFFSETS, NonNegatable
+	Qualifier	APPEND, NonNegatable
+	Qualifier	ARGFILES, Negatable
+	Qualifier	BACKUP, Negatable, VALUE(type=BACKUP_OPTS,
+			 required, list)
+	Qualifier	BATCH, NonNegatable, VALUE(type=$FILE)
+	Qualifier	BEFORE, NonNegatable, VALUE(type=$DATETIME)
+	Qualifier	COMMENTS, NonNegatable,
+			 VALUE(list, type=COMMENTS_OPTS)
+	Qualifier	COMPRESSION, NonNegatable,
+			 VALUE(type=COMPRESS_OPTS, list)
+	Qualifier	COPY_ENTRIES, NonNegatable
+	Qualifier	DEFAULT_DIRECTORY, NonNegatable,
+			 VALUE(required, type=$FILE)
+	Qualifier	DESCRIPTORS, NonNegatable
+	Qualifier	DIFFERENCE, NonNegatable
+	Qualifier	DIRNAMES, Negatable, Default
+	Qualifier	DISPLAY, NonNegatable,
+			 VALUE(type=DISPLAY_OPTS, required, list)
+	Qualifier	DOT_VERSION, NonNegatable
+	Qualifier	ENCRYPT, Negatable, VALUE(type=ENCRYPT_OPTS, list)
+	Qualifier	EXTRA_FIELDS, Negatable, VALUE(type=EXTRA_OPTS)
+	Qualifier	FILESYNC, NonNegatable
+	Qualifier	FIX_ARCHIVE, NonNegatable, VALUE(type=FIX_OPTS)
+	Qualifier	FULL_PATH, Negatable
+	Qualifier	GROW, NonNegatable
+	Qualifier	HELP, NonNegatable, VALUE(type=HELP_OPTS)
+	Qualifier	JUNK, Negatable
+	Qualifier	KEEP_VERSION, Negatable
+	Qualifier	LATEST, NonNegatable
+	Qualifier	LEVEL, VALUE(type=LEVEL_OPTS, required, list)
+	Qualifier	LICENSE, NonNegatable
+	Qualifier	LOG_FILE, NonNegatable,
+			 VALUE(list, required, type=LOG_OPTS)
+	Qualifier	MUST_MATCH, NonNegatable
+	Qualifier	OUTPUT, VALUE(required, type=$FILE)
+	Qualifier	PATTERN_CASE, NonNegatable, VALUE(type=PATT_CASE_OPTS)
+	Qualifier	PAUSE, Negatable
+	Qualifier	PKZIP, Negatable
+	Qualifier	PREFIX, VALUE(required, list, type=PREFIX_OPTS)
+	Qualifier	PRESERVE_CASE, Negatable,
+			 VALUE(type=PRES_CASE_OPTS, list)
+	Qualifier	QUIET, NonNegatable
+	Qualifier	RECURSE, Negatable, VALUE(type=RECURSE_OPTS)
+	Qualifier	SHOW, NonNegatable,
+			 VALUE(type=SHOW_OPTS, required, list)
+	Qualifier	SINCE, NonNegatable, VALUE(type=$DATETIME)
+	Qualifier	SPLIT, NonNegatable,
+			 VALUE(list, required, type=SPLIT_OPTS)
+	Qualifier	STATISTICS, NonNegatable,
+			 VALUE(list, type=STAT_OPTS)
+	Qualifier	STORE_TYPES, NonNegatable, VALUE(required, list)
+	Qualifier	STREAM, Negatable
+	Qualifier	SYMLINKS, NonNegatable
+	Qualifier	TEMP_PATH, VALUE(required, type=$FILE)
+	Qualifier	TEST, NonNegatable, VALUE(type=TEST_OPTS)
+	Qualifier	TRANSLATE_EOL, NonNegatable, VALUE(type=EOL_OPTS)
+	Qualifier	UNSFX, NonNegatable
+	Qualifier	VERBOSE, NonNegatable, VALUE(type=VERBOSE_OPTS, list)
+	Qualifier	VERSION, NonNegatable, VALUE(type=VERSION_OPTS)
+	Qualifier	VOLUME_LABEL, Negatable
+	Qualifier	VMS, NonNegatable, VALUE(type=VMS_OPTS)
+	Qualifier	VNAMES, Negatable
+	Qualifier	WILDCARD, VALUE(type=WILDCARD_OPTS)
+	Qualifier	YYZ_ZIP, NonNegatable, Default
+	Qualifier	ZIP64, Negatable
+
+	! /COMPRESSION = STORE impiles LEVEL 0.
+	Disallow	COMPRESSION.STORE.LEVEL
+	! /COMPRESSION = LEVEL requires /COMPRESSION = SUFFIX.
+#ifdef BZIP2_SUPPORT
+	Disallow	COMPRESSION.BZIP2.LEVEL and
+			 (not COMPRESSION.BZIP2.SUFFIX)
+#endif /* def BZIP2_SUPPORT */
+	Disallow	COMPRESSION.DEFLATE.LEVEL and
+			 (not COMPRESSION.DEFLATE.SUFFIX)
+#ifdef LZMA_SUPPORT
+	Disallow	COMPRESSION.LZMA.LEVEL and
+			 (not COMPRESSION.LZMA.SUFFIX)
+#endif /* def LZMA_SUPPORT */
+#ifdef PPMD_SUPPORT
+	Disallow	COMPRESSION.PPMD.LEVEL and
+			 (not COMPRESSION.PPMD.SUFFIX)
+#endif /* def PPMD_SUPPORT */
+
+	! Allow only one of COPY_ENTRIES, DELETE, FRESHEN, UPDATE.
+	Disallow	any2( COPY_ENTRIES, DELETE, FRESHEN, UPDATE)
+
+	Disallow	DIFFERENCE and (neg OUTPUT)
+	Disallow	DIFFERENCE and
+			 (FIX_ARCHIVE.NORMAL or FIX_ARCHIVE.FULL or
+			 COPY_ENTRIES or DELETE)
+	Disallow	APPEND and GROW
+	Disallow	FIX_ARCHIVE.NORMAL and FIX_ARCHIVE.FULL
+	Disallow	(FIX_ARCHIVE.NORMAL or FIX_ARCHIVE.FULL) and
+			 (neg OUTPUT)
+	Disallow	TRANSLATE_EOL.LF and TRANSLATE_EOL.CRLF
+	Disallow	FULL_PATH and JUNK
+
+	! /LEVEL = 0 implies method STORE.  Method STORE implies level 0.
+	Disallow	LEVEL.0.DEFLATE
+#ifdef BZIP2_SUPPORT
+	Disallow	LEVEL.0.BZIP2
+#endif /* def BZIP2_SUPPORT */
+#ifdef LZMA_SUPPORT
+	Disallow	LEVEL.0.LZMA
+#endif /* def LZMA_SUPPORT */
+#ifdef PPMD_SUPPORT
+	Disallow	LEVEL.0.PPMD
+#endif /* def PPMD_SUPPORT */
+	Disallow	LEVEL.1.STORE
+	Disallow	LEVEL.2.STORE
+	Disallow	LEVEL.3.STORE
+	Disallow	LEVEL.4.STORE
+	Disallow	LEVEL.5.STORE
+	Disallow	LEVEL.6.STORE
+	Disallow	LEVEL.7.STORE
+	Disallow	LEVEL.8.STORE
+	Disallow	LEVEL.9.STORE
+
+	Disallow	RECURSE.PATH and RECURSE.FILENAMES
+	Disallow	(neg EXTRA_FIELDS) and
+			 (KEEP_EXISTING or EXTRA_FIELDS.NORMAL)
+	Disallow	(neg SHOW.FILES) and SHOW.FILES.USIZE
+
+	Disallow	BACKUP.TYPE and FIX_ARCHIVE
+	Disallow	BACKUP.TYPE and OUTPUT
+	Disallow	BACKUP.TYPE and (not BACKUP.DIRECTORY)
+	Disallow	BACKUP.TYPE and (not BACKUP.NAME)
+	Disallow	((not BACKUP.TYPE) or BACKUP.TYPE.NONE) and
+			 (BACKUP.CONTROL or BACKUP.DIRECTORY or
+			 BACKUP.LOG or BACKUP.NAME)
+
+	Disallow	PREFIX and (not PREFIX.PATH)
+	Disallow	PREFIX.ALL and PREFIX.NEW
+
+	Disallow	VERBOSE.NORMAL and VERSION
+
+Define	Type		BACKUP_OPTS
+	Keyword		CONTROL, VALUE(required, type=$FILE)
+	Keyword		DIRECTORY, VALUE(required, type=$FILE)
+	Keyword		LOG, VALUE(type=$FILE)
+	Keyword		NAME, VALUE(required, type=$FILE)
+	Keyword		TYPE, VALUE(required, type=BACKUP_TYPE_OPTS)
+
+Define	Type		BACKUP_TYPE_OPTS
+	Keyword		DIFFERENTIAL
+	Keyword		FULL
+	Keyword		INCREMENTAL
+	Keyword		NONE, Default
+
+Define	Type		COMMENTS_OPTS
+	Keyword		ARCHIVE, Default
+	Keyword		FILES
+	Keyword		ZIP_FILE
+
+Define	Type		COMPRESS_MTHD_LEVEL_OPTS
+	Keyword		1
+	Keyword		2
+	Keyword		3
+	Keyword		4
+	Keyword		5
+	Keyword		6
+	Keyword		7
+	Keyword		8
+	Keyword		9
+
+Define	Type		COMPRESS_MTHD_OPTS
+	Keyword		LEVEL, VALUE(required, type=COMPRESS_MTHD_LEVEL_OPTS)
+	Keyword		SUFFIX, VALUE(required, list)
+
+Define	Type		COMPRESS_OPTS
+#ifdef BZIP2_SUPPORT
+	Keyword		BZIP2, VALUE(type=COMPRESS_MTHD_OPTS, list)
+#endif /* def BZIP2_SUPPORT */
+	Keyword		DEFLATE, VALUE(type=COMPRESS_MTHD_OPTS, list)
+#ifdef LZMA_SUPPORT
+	Keyword		LZMA, VALUE(type=COMPRESS_MTHD_OPTS, list)
+#endif /* def LZMA_SUPPORT */
+#ifdef PPMD_SUPPORT
+	Keyword		PPMD, VALUE(type=COMPRESS_MTHD_OPTS, list)
+#endif /* def PPMD_SUPPORT */
+	Keyword		STORE, VALUE(type=COMPRESS_MTHD_OPTS, list)
+
+Define	Type		DISPLAY_OPTS
+	Keyword		BYTES
+	Keyword		COUNTS
+	Keyword		DOTS, VALUE
+	Keyword		GLOBALDOTS
+	Keyword		USIZE
+	Keyword		VOLUME
+
+Define	Type		ENCRYPT_METHOD_OPTS
+	Keyword		TRADITIONAL, Default
+#ifdef CRYPT_AES_WG
+	Keyword		AES128
+	Keyword		AES192
+	Keyword		AES256
+#endif /* def CRYPT_AES_WG */
+
+Define	Type		ENCRYPT_OPTS
+	Keyword		ANSI_PASSWORD, Negatable
+	Keyword		METHOD, VALUE(type=ENCRYPT_METHOD_OPTS)
+	Keyword		PASSWORD, VALUE(required)
+	Keyword		SHORT_PASSWORD, Negatable
+
+Define	Type		EOL_OPTS
+	Keyword		LF, Default
+	Keyword		CRLF
+
+Define	Type		EXTRA_OPTS
+	Keyword		NORMAL, Default
+	Keyword		KEEP_EXISTING
+
+Define	Type		FIX_OPTS
+	Keyword		NORMAL, Default
+	Keyword		FULL
+
+Define	Type		HELP_OPTS
+	Keyword		NORMAL, Default
+	Keyword		EXTENDED
+
+Define	Type		LEVEL_MTHD_OPTS
+#ifdef BZIP2_SUPPORT
+	Keyword		BZIP2
+#endif /* def BZIP2_SUPPORT */
+	Keyword		DEFLATE
+#ifdef LZMA_SUPPORT
+	Keyword		LZMA
+#endif /* def LZMA_SUPPORT */
+#ifdef PPMD_SUPPORT
+	Keyword		PPMD
+#endif /* def PPMD_SUPPORT */
+	Keyword		STORE
+
+Define	Type		LEVEL_OPTS
+	Keyword		0, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		1, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		2, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		3, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		4, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		5, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		6, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		7, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		8, VALUE(type=LEVEL_MTHD_OPTS, list)
+	Keyword		9, VALUE(type=LEVEL_MTHD_OPTS, list)
+
+Define	Type		LOG_OPTS
+	Keyword		APPEND, Negatable
+	Keyword		INFORMATIONAL, Negatable
+	Keyword		FILE, NonNegatable, VALUE(required, type=$FILE)
+
+Define	Type		PATT_CASE_OPTS
+	Keyword		BLIND
+	Keyword		SENSITIVE, Default
+
+Define	Type		PREFIX_OPTS
+	Keyword		ALL
+	Keyword		NEW, default
+	Keyword		PATH VALUE(required)
+
+Define	Type		PRES_CASE_OPTS
+	Keyword		NOODS2
+	Keyword		NOODS5
+	Keyword		ODS2
+	Keyword		ODS5
+
+Define	Type		RECURSE_OPTS
+	Keyword		PATH, Default
+	Keyword		FILENAMES
+
+Define	Type		SHOW_OPTS
+	Keyword		COMMAND
+	Keyword		DEBUG
+	Keyword		FILES, Negatable, VALUE(type=SHOW_FILES_OPTS, list)
+	Keyword		OPTIONS
+	Keyword		SUFFIXES
+
+Define	Type		SHOW_FILES_OPTS
+	Keyword		USIZE, Negatable
+
+Define	Type		SPLIT_OPTS
+	Keyword		BELL, Negatable
+	Keyword		PAUSE, Negatable
+	Keyword 	SIZE, VALUE(required)
+	Keyword		VERBOSE, Negatable
+
+Define	Type		STAT_OPTS
+	Keyword		TIME, Default
+
+Define	Type		TEST_OPTS
+	Keyword		UNZIP, VALUE(required)
+
+Define	Type		VERBOSE_OPTS
+	Keyword		NORMAL, Default
+	Keyword		MORE
+	Keyword		COMMAND
+
+Define	Type		VERSION_OPTS
+	Keyword		NORMAL, Default
+	Keyword		BRIEF
+
+Define	Type		VMS_OPTS
+	Keyword		ALL
+
+Define	Type		WILDCARD_OPTS
+	Keyword		NOSPAN
+

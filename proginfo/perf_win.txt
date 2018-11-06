@@ -1,0 +1,33 @@
+perf_win.txt
+
+A quick look at performance of Zip on Windows.
+
+If any of the data below is wrong or you have additional information that
+can be added, let us know.
+
+---------------------------------------------------------------
+
+Initial tests
+-------------
+
+(The data below gathered on Windows 7 64-bit using Visual Studio 2010 builds.)
+
+Preliminary tests suggest:
+
+- Release Win32 is fastest, being significantly faster than Release x64.
+
+- Release ASM Win32 is significantly faster than Debug Win32.
+
+- Debug ASM Win32 is the slowest.
+
+So builds without assembler look significantly faster than builds with
+assembler.  This may indicate that the assembler code needs some work to
+take advantage of 64-bit OS.
+
+As expected, Release builds are many times faster than Debug builds.
+
+So the Release Win32 (no assembler) build, when running on Windows 7 64-bit
+is by far the fastest.
+
+Last updated 2015-10-04 (EG)
+

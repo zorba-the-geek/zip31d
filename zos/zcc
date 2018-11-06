@@ -1,0 +1,110 @@
+#!/bin/sh
+#
+# zos/zcc - Zip 3.1, UnZip 6.10                                     09 Sept 2011
+#
+# Copyright (c) 2011 Info-ZIP.  All rights reserved.
+#
+# See the accompanying file LICENSE, version 2009-Jan-2 or later
+# (the contents of which are also included in zip.h) for terms of use.
+# If, for some reason, all these files are missing, the Info-ZIP license
+# also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+#
+# zcc: In the z/OS UNIX Systems Services or z/VM OpenEdition environments,
+#      invoke the IBM XL C compiler driver program capturing the listing
+#      and error output.
+#
+#      The XL C compiler driver program normally directs any listing output
+#      to stdout, and error output to stderr.  This is not terribly useful
+#      for any but the most trivial programs, so this script was introduced
+#      to make things more useful.
+#
+#      - The first parameter must be the name of the XL C compiler driver
+#        program - cc, c89, xlc, xlc_64, etc.
+#
+#      - The object file name is extracted from the -o option parameter,
+#        and the object file directory (if any) and base name determined.
+#
+#      - If the -o option is not specified, but the -c option is present,
+#        the source file name is extracted from the -c option parameter,
+#        and the object file directory (if any) and base name determined.
+#
+#      - The compiler stdout is directed to a file with the object file
+#        directory and basename and the extension ".lst".
+#
+#      - The compiler stderr is directed to a file with the object file
+#        directory and basename and the extension ".err".
+#
+
+# Determine shell name
+zccname=$(basename "$0")
+
+# Save zcc options
+zccopts=$@
+
+# Emit usage if invoked with no operands
+if [ $# = 0 ]; then
+  echo usage: "$zccname pgm [XL_C_options] -o objfile.o srcfile.c"
+  echo Captures C compile listing in objfile.lst and errors in objfile.err
+  exit 1
+fi
+
+# Bypass the XL C driver name
+shift
+
+# Locate the XL C compiler -o option and object file name
+# - Also note the -c option and source file name
+objfile=""
+srcfile=""
+while getopts ":o:c:I:D:W:q:L:" opt; do
+  case $opt in
+    o ) objfile="$OPTARG" ;;
+    c ) srcfile="$OPTARG" ;;
+    I ) ;;      # -Idir
+    D ) ;;      # -Dsymbol
+    W ) ;;      # -Woption
+    q ) ;;      # -qoption
+    L ) ;;      # -Loption
+    * ) ;;      # Ignore other forms
+  esac
+done
+shift $((OPTIND -1))
+
+# Escape all parentheses and "strings" in the zcc options
+zccopts=$(echo "$zccopts" | sed -e "s/(/\'(/g"     \
+                                -e "s/)/)\'/g"     \
+                                -e "s/=\"/=\'\"/g" \
+                                -e "s/\" /\"\' /g" )
+
+# Determine listing and error file directory and base names
+if [ -n "${objfile}" ]; then
+  targdir=$(dirname $objfile)
+  targname=$(basename $objfile .o)
+elif [ -n "${srcfile}" ]; then
+  targdir=$(dirname $srcfile)
+  targname=$(basename $srcfile .c)
+else
+  echo "$zccname:" options must include either "\"-o objfile.o\" \
+       "or "\"-c srcfile.c\""
+  exit 1
+fi
+
+if [ -z "$targdir" ]; then
+  targdir="."
+elif [ ! -d "$targdir" ]; then
+  echo "$zccname:" $targdir is not an existing directory
+  exit 1
+fi
+
+# Set the listing file path name
+lstname=$targdir/$targname.lst
+
+# Set the error file path name
+errname=$targdir/$targname.err
+
+# Remove any previous output files
+rm -f $lstname $errname
+
+# Invoke the C compiler capturing stdout and stderr
+eval "$zccopts >$lstname 2>$errname"
+rc=$?
+exit $rc

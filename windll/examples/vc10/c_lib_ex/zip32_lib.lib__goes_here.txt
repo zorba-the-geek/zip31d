@@ -1,0 +1,1 @@
+Put zip32_lib.lib here to compile the RELEASE version of the LIB example.

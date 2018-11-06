@@ -1,0 +1,140 @@
+.\" =========================================================================
+.\" Copyright (c) 1990-2014 Info-ZIP.  All rights reserved.
+.\"
+.\" See the accompanying file LICENSE, version 2009-Jan-2 or later
+.\" (the contents of which are also included in zip.h) for terms of use.
+.\" If, for some reason, all these files are missing, the Info-ZIP license
+.\" also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
+.\" ==========================================================================
+.\"
+.\" zipnote.1 by E. Gordon for Zip 3.0, 3.1
+.\"
+.TH ZIPNOTE 1 "6 November 2015 (v3.1)" Info-ZIP
+.SH NAME
+zipnote \- write the comments in zipfile to stdout, edit comments and rename files in zipfile (v3.1)
+
+.SH SYNOPSIS
+.I zipnote
+.RB [ \-w ]
+.RB [ \-b\ path ]
+.RB [ \-h ]
+.RB [ \-v ]
+.RB [ \-L ]
+zipfile
+
+.SH ARGUMENTS
+.in +13
+.ti -13
+zipfile  Zipfile to read comments from or edit.
+
+.SH OPTIONS
+
+.TP
+.PD 0
+.B \-w
+.TP
+.PD
+.B \-\-write
+Write comments to a zipfile from stdin (see below).
+
+.TP
+.PD 0
+.B \-b\ \fRpath
+.TP
+.PD
+.B \-\-temp-dir\ \fRpath
+Use path for the temporary zip file.
+
+.TP
+.PD 0
+.B \-L
+.TP
+.PD
+.B \-\-license
+Show software license.
+
+.TP
+.PD 0
+.B \-q
+.TP
+.PD
+.B \-\-quiet
+Quieter operation, suppress some informational messages.
+
+.TP
+.PD 0
+.B \-v
+.TP
+.PD
+.B \-\-version
+Show version information.
+
+.TP
+.PD 0
+.B \-h
+.TP
+.PD
+.B \-\-help\ \ \ \ 
+Show a short help.
+
+.TP
+.PD 0
+.B \-hh
+.TP
+.PD
+.B \-\-more-help
+Show more help.
+
+
+.SH DESCRIPTION
+.I zipnote
+writes the comments in a zipfile to stdout.  This is the default mode.  A second mode
+allows updating the comments in a zipfile as well as allows changing the names
+of the files in the zipfile.  These modes are described below.
+
+.SH EXAMPLES
+To write all comments in a zipfile to stdout use for example
+.LP
+.nf
+     zipnote foo.zip > foo.tmp
+.fi
+.LP
+This writes all comments in the zipfile
+.I foo.zip
+to the file
+.I foo.tmp
+in a specific format.
+
+.LP
+If desired, this file can then be edited to change the comments and then used
+to update the zipfile.
+.LP
+.nf
+     zipnote -w foo.zip < foo.tmp
+.fi
+.LP
+The names of the files in the zipfile can also be changed in this way.  This is done by
+following lines like
+.nf
+     "@ name"
+.fi
+in the created temporary file (called
+.I foo.tmp
+here) with lines like
+.nf
+     "@=newname"
+.fi
+and then using the -w option as above.
+
+.SH BUGS
+The temporary file format is rather specific and zipnote is rather picky about it.
+It should be easier to change file names in a script.
+
+Does not yet support writing large (> 2 GB) or split archives.
+
+UTF-8 paths are not yet fully supported.
+
+.SH SEE ALSO
+zip(1), unzip(1)
+.SH AUTHOR
+Info-ZIP

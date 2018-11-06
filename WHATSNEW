@@ -1,0 +1,1060 @@
+What's New
+
+Last updated 30 October 2015
+
+This file is the full list of new features and major changes for Zip 3.x
+by beta release.  See the announcement file zip31d.ann for a quick summary
+of all features and changes in Zip 3.1d (this beta).  Also see the file
+README for release information, INSTALL for installation procedures, and
+the manual pages (plain text versions of these being zip.txt, zipsplit.txt,
+zipcloak.txt, and zipnote.txt in the docs directory), as well as the
+extended help in Zip, for how to use the new features.  The file CHANGES
+has all the day-to-day changes made during development.  Please contact us
+if you have any questions.
+
+
+-----------------------------------------------------------------------
+Zip 3.1d is a Release Candidate for Zip 3.1.  That means we are close
+to freezing the feature set and doing final preparations for releasing
+Zip 3.1.  If there's anything you feel is missing from Zip 3.1 or needs
+work, send in your suggestions, recommendations and patches.  If you
+find any bugs anywhere, let us know or, better yet, send in your bug
+fixes.  Barring any significant issues, we plan to repackage and
+release this beta with minimal modification as Zip 3.1.
+
+UnZip 6.1 is also getting close.  Look for UnZip 6.1c soon.
+-----------------------------------------------------------------------
+
+
+MAJOR CHANGES BY BETA VERSION
+-----------------------------
+
+New things in Zip 3.1d
+
+There were a lot of changes and additions in Zip this beta cycle.
+We've broken them up by category for easier reading.
+
+Note that most short options (like -Y) have a long option equivalent
+(like --encryption-method).  For brevity often only the short option
+is listed below.
+
+Compression/Encryption:
+- AES/WG (AES WinZip/Gladman) encryption.  Original (traditional/ZipCrypto)
+    zip encryption is considered weak (easy to crack) by today's standards.
+    Zip 3.1 now supports the WinZip implementation of AES.  You can now
+    choose between TRADITIONAL (ZipCrypto), AES-128 (128-bit), AES-192
+    (192-bit), and AES-256 (256-bit) AES encryption.  We are considering
+    adding other encryption methods in the future.  A new -Y option
+    specifies encryption method and strength.  For export-control reasons,
+    the AES code is distributed in a separate kit available on our sites.
+    See the file INSTALL for how to add AES encryption to Zip.
+- LZMA and PPMd compression.  These methods are now supported by Zip and
+    may provide better compression in many cases.  All compression methods
+    (store, deflate, bzip2, LZMA and PPMd) are now included and enabled by
+    default.  Other compression methods, in particular enhanced deflate
+    and XZ, may be added in the future.
+- CD_ONLY compression.  A new CD_ONLY "compression" method is available
+    when using copy mode to copy entries from one archive to another.
+    This method actually only copies the file listing (central directory)
+    to the output archive.  No actual file data is copied, so entries
+    in a CD_ONLY archive can't be restored.  However, a CD_ONLY archive
+    can be used as the base archive in a -DF (--diff) operation to
+    create a difference archive or in a -BT operation (more on -BT in the
+    "Backups" section below) to create differential and incremental backups.
+    This allows a full (normal) backup of a file tree to be made, then stored
+    offline while a small CD_ONLY archive is kept on the system to perform
+    weekly and daily differential and incremental backups against.
+- Extended -1/-9, -n, and -Z options.  These offer more detailed control
+    over compression level, suffix exclusions, and selection of compression
+    method.  Use -ss to list the final dispositions of suffixes as derived
+    from the current command line and exit.
+- -9 option no longer clears -n (STORE) suffix list.  (Previously,
+    with -9, Zip tried to compress all files, the resulting archive often
+    being larger than the sum of the original files.  Now, -9 only sets the
+    compression level to max.)  "-n :" can be used to clear the suffix list
+    when needed, so "-9 -n :" restores the previous behavior of -9.
+- --etwodd.  A new TRADITIONAL (ZipCrypto) encryption mode allows creation
+    of Zip archives without setting streaming mode.  (The need for streaming
+    mode comes from the definition of Traditional encryption requiring
+    saving of CRC before it's known.  Using streaming mode allows processing
+    files in one pass, but requires use of data descriptors that are not
+    universally supported.)  The new --etwodd option allows creating these
+    Traditional encrypted entries without using streaming mode, but
+    requires reading the file twice.  Normally the user need not be
+    concerned about this, but this option could be useful if the archive is
+    for use with another utility that has issues with Zip Traditional
+    encryption.  That said, we do not recommend use of Zip Traditional
+    encryption at all, recommending instead the new stronger AES encryption
+    methods.
+- -P overrides -e.  Previously -e would prompt for a password, even after
+    a "-P password" was provided.  Now "-P password" suppresses -e.  We still
+    discourage use of -P as it can be unsafe on some systems.  (But see
+    the new argfiles feature as a way to mitigate this.)
+- Allow short passwords.  Added -ps to allow setting a password shorter
+    than the minimum.  This is for AES encryption, which sets minimum
+    password lengths based on strength of encryption used.  -ps is
+    intended only as a test and debugging aid and should not be used when
+    security is a concern.  Indeed, even the minimum lengths should not be
+    taken as recommendations as longer and more complex passwords are
+    generally more secure.
+- Non-ANSI passwords.  The default now is to require passwords to be 7-bit
+    ASCII.  This avoids various character set issues with passwords.  The
+    new option -pn allows other characters to be used in the password (which
+    may make the password dependent on the locale or code page).
+- Keyfiles.  Zip and ZipCloak now support a new -kf option that allows
+    reading part or all of a password from a file.  If both password and
+    keyfile used, password appears first in key, followed by keyfile
+    contents until 128 byte maximum length reached.
+- ZipCloak password.  ZipCloak now only asks once for decryption password.
+- control.h.  A new file, control.h, allows control of inclusion of the
+    additional compression and encryption methods on Windows.
+
+Archive testing:
+- Updated archive testing.  Previously, when -T was used to test an archive,
+    the unzip to use was checked for compatibility after the zip operation
+    and just before testing the created archive.  If the archive used a
+    feature that unzip did not have, the test would fail, possibly after
+    hours of zipping.  Also, the reason for the failure (a bad archive,
+    couldn't run unzip, etc.) was hard to determine.  Zip 3.1d now checks
+    if unzip has the specific features needed and does that check after
+    the file scan but before the zip operation starts, so an incompatible
+    unzip might be known in minutes for a large scan, instead of hours
+    later.  Also, when UnZip is used for testing, Zip returns more detailed
+    information about any failure.  In addition, if the test fails because
+    UnZip could not be run or because UnZip doesn't support a feature used
+    by the archive, the new error ZE_UNZIP (26) is returned.  The error
+    ZE_TEST (8) is now reserved for a failed archive test or a test issue.
+- New -TU and -TV options.  Though the -TT option is focused on using
+    UnZip to test archives, it is generic and other utilities can be
+    used instead of UnZip.  This prevents -TT from taking advantage of
+    specific UnZip features.  The new option -TU allows defining just
+    the path to UnZip, letting Zip take care of the details.  Use of -TU
+    is now the preferred way to use an unzip other than the default.
+    The new option -TV instructs unzip to be more verbose, providing the
+    test results of each archive entry, and replacing Zip's -v for that
+    purpose.
+- -pu needed to test with password.  If Zip is encrypting and -T is used to
+    test the archive, the new option -pu is needed to pass that password to
+    UnZip to perform the test.  The default now is to not pass the password
+    and let UnZip prompt for it.  This avoids issues with passing a password
+    on a command line.  If a keyfile was used, and -pu is specified, the
+    passed key is the full key created from any password and keyfile content.
+    If that content contains binary, the unzip used to test the archive may
+    not accept it on the command line.  Better handling of testing archives
+    encrypted with keyfiles is planned.
+
+Command line and paths:
+- -@@filename.  The new option -@@ is similar to -@, but instead of getting
+    names to zip up from stdin, -@@filename reads them from filename,
+    one name/path per line.  Because -c (add entry comments) and -z (add
+    archive comment) also use stdin, they are not compatible with -@, but
+    are with -@@.  ("-@@ -" is the same as -@.) 
+- Included file paths are now trimmed.  Previously include files (-i@, -x@,
+    -@ and -@@) used the full input line as the path or pattern.  Now each
+    line has leading and trailing white space removed.  Double quotes can be
+    used to force inclusion of leading and trailing white space.
+- @argfile.  It's now possible to insert arguments into the command line
+    using argument files.  These are files that contain white space separated
+    command line arguments.  When Zip encounters "@filename" on the command
+    line (nothing between "@" and "filename"), filename is opened and any
+    arguments found inserted at that spot on the command line.  Options as
+    well as paths and patterns can be included in an argfile.  Any arguments
+    containing white space must be surrounded by double quotes.  Argfiles can
+    include comments and directives.  The default extension for argfiles
+    is ".zag".
+    NOTE:  Any command line argument starting with "@" will now be handled
+    as an argfile, unless the '@' is escaped or -AF- (negated -AF) used to
+    turn off reading argfiles.  If you work with files that start with
+    @ and don't need argument files, you can put -AF- in a Zip
+    environment variable to always disable argfiles.
+    NOTE:  Argfiles provide a way to hide parts of a command line, for
+    instance to specify a password with -P without it being seen by others.
+- Verbatim arguments.  The "--" argument flags any following arguments on
+    the command line as verbatim.  Previously this just prevented names
+    starting with "-" from being read as options.  "--" has now been updated
+    to turn off wildcard processing.  Now anything following "--" on the
+    command line is read as a file name without option or arg file
+    recognition or wildcard processing.  File names starting with "-" or
+    "@", or that include wildcards are just input files after "--".  But
+    note that wildcards may still need to be escaped to prevent the shell
+    from expanding them.
+- --out to stdout.  Allow "--out -" to send output to stdout.
+- -@@ from stdin.  Allow "-@@ -" as equivalent to -@ to read files from
+    stdin.
+- Path and argument limits.  Zip now has a maximum path limit of 32k bytes
+    and a maximum argument size of 8k bytes.  Paths and arguments that
+    exceed these limits will be truncated.  (The 32k is driven by Windows.
+    The 8k should be sufficient to work with the command line processing
+    of most ports.  We'd appreciate feedback regarding these limits.)
+    Limitations of a particular OS may reduce these limits.
+
+Backups:
+- Managed backups.  A managed backup capability has been added to Zip,
+    implemented using options -BC, -BD, -BL, -BN and -BT.  This feature
+    allows creating full, differential and incremental timestamped backups
+    without the need to update command lines to, for instance, change output
+    path or name to avoid overwriting previous backups.  Uses a control file
+    (extension ".zbc") to track each backup set.  Due to the inclusion of
+    date/time stamps in file names, this feature is currently only available
+    on ports that support long file names.
+
+Libraries:
+- Revamped LIB/DLL interface.  The updated Zip library interface now
+    takes a Zip command line rather than the old options structure.
+    Nearly all Zip options are available to the user, this new interface
+    providing much more flexibility and control.  Updated and new callbacks
+    provide much greater control over how Zip operates and provides more
+    information to the user's program, including progress reporting and
+    faster aborting.  A new entry point, ZpZip(), provides a single entry
+    point for both LIB and DLL.
+- Windows LIB and DLL support.  The Windows LIB and DLL have been tested
+    with Visual Studio 6 (Windows XP) and Visual Studio 2010 (Windows 7)
+    applications.  Updated example applications in C (LIB and DLL) and
+    Visual Basic (DLL only) show how to use the libraries.  (A C# example
+    may be added by release.)
+- Zip LIB on Unix and VMS.  The LIB static library can now be compiled
+    and used on Unix and VMS.  An example C application shows how.  
+- LIB/DLL test entry points.  The new interface includes a couple entry
+    points that can be used to help debug new applications.
+- Updated Version interface.  The Version entry point is updated to
+    return more information in a standard format, along with a feature
+    list string that lists what is implemented in the library.  The Version
+    entry point is used to check the version of the Zip library to make
+    sure it is compatible with the application before ZpZip() is called.
+    The Version interface should now remain stable, any later changes and
+    additions being specified in the feature list.
+- LIB/DLL output redirection.  Output functions printf(), fprintf() and
+    perror() have been replaced with Zip functions zprintf(), zfprintf()
+    and zperror() (which call printf() and fprintf() normally) to allow
+    output redirection when using Zip as a LIB or DLL.  This change allows
+    LIB applications greater control over what output Zip generates and
+    where it goes.  (The DLL already provided similar control.)
+- Unicode support.  The library (LIB/DLL) now supports Unicode inputs and
+    reporting Unicode via the callbacks.
+
+Unix:
+- Internal support for input file wildcards.  Previously, the Unix shell
+    was relied on for all wildcard matching (globbing) of input files.
+    File names surrounded by quotes or that had escaped wildcards were not
+    wildcard processed, but taken as file names with wildcard characters.
+    (Filter patterns, such as for -i, -x and -R, are handled by Zip and
+    wildcards in those always need to be quoted or escaped.)  Now Unix
+    quoted and escaped input file names are processed by Zip as on other
+    ports.  There should be little difference now if an input file is
+    quoted or not, outside of other reasons to quote file names, such as
+    to include a name with white space.
+- Alphabetical file lists.  When recursing into directories, Zip now
+    returns the paths/files found in alphabetical order.  Previously
+    Zip returned file lists in the order the Unix directory scan provided
+    them, which is somewhat random.  (One side effect of this is, if
+    multiple input patterns are given and the scopes of these overlap,
+    the results will be merged into a single alphabetical list, rather
+    than be included as one list after the other.)  Let us know if
+    there are concerns or issues regarding this (or any) change.
+- Unix builder updates.  Major updates to the Unix Makefile and
+    configure script builders, including restructuring some directories
+    and allowing redirection of output files.  In addition, the output
+    of the configure script has been updated to provide more and
+    clearer information.
+- Stdin now stored as regular file.  Previously on Unix, content read from
+    stdin (input file "-") was labeled as coming from a pipe.  This label
+    prevented such files from being properly handled in some unzip utilities.
+    Now contents from stdin ("-" archive entries) are labeled as regular files.
+- Unix Named Pipes (FIFOs) always archived.  Previously, if -FI was
+    not used, named pipes were skipped.  Now, Unix named pipes (FIFOs)
+    are always archived, but content is only read if -FI used.  (Note that
+    Zip will wait on an unfed FIFO if -FI is used.)  Named Pipes are marked
+    "pipe" in the archive.  (This allows UnZip to restore the pipe, a
+    feature currently being implemented.)
+
+MAC:
+- Implemented MAC OS X (Apple Unix) resource storage.
+
+Windows:
+- Windows Unicode command line support.  On Windows (XP and later), Zip
+    now accepts Unicode arguments on the command line, which Zip converts
+    to and processes as UTF-8.  Zip also displays Unicode, but because
+    of limitations of Windows consoles (command windows) boxes may
+    display instead of characters.  So copying a Unicode path from a
+    Unicode aware text editor (such as Notepad) and pasting that path
+    on the Zip command line now works.  Also, copying console output
+    that includes boxes and pasting these paths into Notepad should
+    show the actual characters.  Zip on Windows now accepts UTF-8 paths
+    and patterns in include files and argfiles.
+    NOTE:  Zip DOES NOT read include files in Windows "Unicode" format.
+    These use a UTF-16LE (double byte) encoding.  Zip DOES read include
+    files in UTF-8 format.  If editing a Unicode file, be sure to save
+    it in "UTF-8" format if you plan to use it as an include file or
+    argfile.
+- Windows symlinks.  Zip 3.1 adds support for Windows symlinks.  (Before
+    this release only Unix symlinks were supported.)  A current UnZip
+    (such as UnZip 6.10) is needed to restore Windows symlinks.  The
+    option -y controls symlink handling on both Unix and Windows.
+- Windows mount points and reparse points.  The new option -yy controls
+    how Windows mount points and reparse points are handled (either
+    followed (except off-line resources) [default], skipped [-yy], or
+    force followed (even if off line) [-yy-]).  The plan is to add storage
+    of mount point and some reparse point information to archives when -yy
+    is used so that UnZip can then restore these, but this is not yet
+    implemented.  For now, a mount point is generally stored as a directory
+    with the name of the mount point when -yy is used.
+- Windows long paths.  The Windows shell typically limits paths to 260
+    characters, but much longer paths can be created programmatically.
+    Earlier versions of Zip could not read these paths and so they were
+    skipped.  Zip 3.1 now can read and store these longer paths.  Note
+    that Windows Explorer (as of Windows 7) does not open archives with
+    long paths, considering these corrupt.  Do not store long paths if
+    the destination utility can't handle them.  (If you do and run into
+    trouble, the troublesome paths can be deleted from the archive.)  The
+    new option -wl- (negated -wl) can disable inclusion of long paths.
+    Zip warns when a Windows long path is being included.
+- Windows 64-bit executables.  We've added initial support for building
+    64-bit Zip executables on Windows using Visual Studio 2010.  The
+    assembly routines are not supported/used when 64-bit compilation is
+    selected.  Note that performance tests on Windows 7 64-bit suggest
+    that Release Win32 (32-bit) executables without assembly may be the
+    fastest.  (Not Win32 with assembly or 64-bit executables, as you might
+    expect on 64-bit Windows.)  We plan to investigate this further shortly.
+
+z/OS and MVS:
+- z/OS and MVS.  A revamping of the MVS and z/OS ports is under way.
+    This beta contains some of those updates, including better Unix
+    support.  The old cmsmvs port has now been split into new zos and
+    zvm ports.  See the README files in those directories for more
+    information.
+- Binary/text handling.  Option -a now does a binary/text test on
+    files before doing EBCDIC-to-ASCII conversion on only the text
+    files.  These tests were only done previously when -l or -ll was
+    specified.  Option -aa can be used to force all files to be handled
+    as text and so EBCDIC-to-ASCII converted.
+- Documentation updates.  Some documentation for ports OS390, Atheos,
+    and z/OS has been updated.
+
+VMS:
+- -vv and -vvv.  The more or less useless VMS option -vvv was removed
+    and option -vv was updated.
+
+Languages and Unicode:
+- iconv.  The iconv library can now be used to perform local-to-Unicode
+    and Unicode-to-local path conversions.  iconv support is still being
+    refined, but the current limited implementation provides some Unicode
+    support on some ports where there was no Unicode support before.  If
+    sufficient wide character Unicode support is available (as on Windows),
+    that is used by default to perform the conversions.
+- Enhanced support of Unicode escapes.  Zip now accepts Unicode escapes
+    (#Uxxxx and #Lxxxxxx) as stand-ins for any character.  (The xxxx or
+    xxxxxx is the UCS-32 character code of the character in hex ASCII
+    digits.)  These get converted to the Unicode equivalents when paths
+    and patterns are matched.
+- No more transliteration.  Zip no longer transliterates characters
+    when a character is not supported in a destination character set.
+    Instead, any unsupported character is converted to a Unicode
+    escape (#Uxxxx or #Lxxxxxx).  This allows more consistent use
+    of Unicode escapes, including one-for-one swapping between Unicode
+    characters and their escapes.  (Transliterated characters generally
+    have different character codes, preventing one-for-one matching
+    between transliterated characters and their UTF-8 and escaped forms.
+    And we've found that transliteration rarely seems to improve
+    readability.)
+- UTF-8 stored native by default.  Zip 3.1 now stores UTF-8 paths
+    and comments as native in the main file name and comment fields,
+    rather than as backward compatible extra fields as Zip 3.0 does by
+    default.  This is the trend for modern zips, which is why Zip 3.1 is
+    making this the default, but requires a reasonably current unzip to
+    read names from archives that use more than 7-bit ASCII.  (Many older
+    utilities out there still don't understand UTF-8, and continue to
+    store and expect to find the local character set in the main fields.)
+    The previous default of storing local paths can be restored using the
+    new -UN=local option.
+- Show UTF-8 option.  The new -UN=ShowUTF8 option can be used to pass UTF-8
+    to a console that Zip has not already recognized as using UTF-8 natively.
+    This allows displaying limited Unicode in a Windows UTF-8 (code page 65001)
+    window using Lucida Console, for instance.  However, Zip on Windows XP and
+    later now directly outputs Unicode characters to the console window (using
+    writeconsolew()) and -UN=ShowUTF8 is the default.  Negating this option
+    (as in -UN=ShowUTF8-) forces Zip to display any non-ASCII characters as
+    Unicode escapes, which can be used to see just what characters are in a
+    path.
+- Logging UTF-8 paths.  The new option -lu can be used to have Zip store
+    UTF-8 paths in the logfile.  A UTF-8 aware editor (such as Notepad on
+    Windows) is needed to see the UTF-8 paths.
+- Updated locale detection code.  Locale detection is now always done
+    if supported.  Previously, determining the locale was only done if
+    UNICODE_SUPPORT was enabled.  Always checking locale allows Zip to
+    adapt to the local environment, even if UNICODE_SUPPORT is not enabled.
+    The locale code is more port specific now; those with knowledge of
+    specific ports should make sure those ports are covered in the locale
+    detection code (now gathered in set_locale()).
+- No automatic switch to UTF-8 locale.  Zip no longer switches to a UTF-8
+    locale if available.  For UTF-8 support, the native locale needs to
+    support UTF-8 when Zip starts.  (There are arguments both ways on the
+    benefits and issues of switching the locale to UTF-8.  Let us know if
+    this change causes problems.)  Unicode support on Windows is still
+    automatic.
+- UTF-16 detection.  Zip now detects if include files (-@@, -i@, -x@ and
+    argfiles) are UTF-16LE (Windows Unicode format) and rejects these
+    unsupported include files.  Unicode include files must be UTF-8.
+- ZipNote UTF-8 names.  ZipNote now accepts UTF-8 names and file comments.
+
+Streaming:
+- Streaming mode.  The new option -st enables a new streaming mode that
+    stores file attributes and other central directory only information
+    in the local headers.  This allows a streaming unzip to fully restore
+    files without referring to the central directory, which hasn't been
+    seen in the stream yet by the unzip.  We are considering enabling
+    stream mode as the default.
+- Various streaming bug fixes.  See Bug Fixes below.
+
+Zip64 and large file support:
+- Better Zip64 selection support.  Zip 3.0 had problems with files that were
+    smaller than 4.0 GiB (and so required Zip64) but when compressed grew
+    larger than 4.0 GiB (due to the file defying compression).  In this case
+    the wrong Zip64 decision was made and Zip exited with an error.  A
+    similar situation was when -l was used to change Unix line ends (LF) to
+    Windows line ends (CR LF), where the extra CRs could push the resulting
+    file over the 4.0 GiB limit.  The -fz option was needed in these cases
+    to force use of Zip64 (for all files).  Zip 3.1 now handles these cases
+    automatically and uses Zip64 only when actually needed.  Use of -fz
+    should no longer be needed.  However, -fz- may still be useful to prevent
+    use of Zip64 in some rare cases, such as creating archives that very old
+    utilities can read, especially if streaming to stdout.
+
+Dates, times and timing:
+- Options -t and -tt that set a date range now support times in the forms
+    :hh:mm and :hh:mm:ss.  Times are local in 24-hour format.  For example:
+    2014-09-08:14:01 is September 8th, 2014, 2:01 PM.
+- New option -pt provides performance timing, i.e. the total time it takes
+    Zip to execute.  When -pt is used, the execution time is displayed by
+    Zip just before it exits.
+
+Content detection and conversion, binary detection:
+- Inconsistencies regarding line end conversions using -l and -ll have been
+    fixed.  Zip now properly handles line ends that occur at the end of
+    buffers.
+- When a file being converted using -l (Unix to Windows line ends), -ll
+    (Windows to Unix line ends) or -a (EBCDIC ASCII conversion) is initially
+    determined to be "text" based on initial buffers read, but later "binary"
+    is found in the file, Zip issues a warning that a binary file may have
+    been corrupted by the conversions.  Now Zip will restart the archiving
+    of that file and process it as binary, skipping the conversions that
+    would corrupt it.  With this change, no binary files should be converted
+    or corrupted using -l, -ll or -a.    
+
+Comments:
+- Comment lengths.  Comment length now limited to 32765 characters.
+- Multi-line entry comments.  Multi-line archive (zip file) comments have been
+    supported, but now each entry comment can be multi-line.  (But note that
+    only some other utilities support comments, and apparently none support
+    multi-line entry comments.)
+- "zip -c archive" now supported for updating entry (file) comments.
+- Display stdin archive comment.  If an archive comment is read from stdin,
+    Zip now displays what was read and is being used as the archive comment.
+- Now, when entering comments interactively (comment input is tty) can keep
+    existing comment.  When getting an archive comment from stdin, a line
+    with just a dot "." still terminates the comment for backward
+    compatibility.
+
+Other new features:
+- Easy logging.  New option -lF is shorthand for creating a log file with
+    "-lf logname" where logname is the same as the archive name, except for
+    the .log at the end.
+- Path case changing.  The new options -Cl and -Cu change the case of
+    added/updated paths to lowercase or uppercase.
+- Quick version.  New option -vq outputs a one-line quick Zip version.
+    This can be useful in scripts that need to know what version of Zip
+    is being used.
+- Prefix added/updated paths.  Similar to -pp, option -pa adds a
+    user-specified prefix to the names/paths of added/updated entries.  By
+    including a slash ("/") in the prefix, added/updated entries can be put
+    into a directory in the archive (for example, -pa "my_new_files/").
+- Enhanced -sf listings.  -sf performs multiple listing functions, including
+    showing what files would be included in a Zip operation and listing the
+    files in an existing archive.  The new option -sF adds information to -sf
+    listings.  Currently only uncompressed size is implemented, allowing -sf
+    listings to include uncompressed size.
+- Change directory.  The new -cd option allows Zip to move to a directory and
+    use that as the top of relative paths stored.  This is similar to just
+    using the shell command cd to move to this directory before running Zip,
+    but the directory change is internal to Zip and does not impact the
+    directory the user's shell is in.
+- -SI.  New option -SI (--rename-stdin) allows renaming stdin content.
+    Normally when "-" is used as an input file to read content from stdin,
+    the file stored in the archive is named "-".  The -SI option allows
+    this file to be renamed to a name specified by the user.
+
+Bug fixes, debugging and error codes:
+(Many of these are discussed on the Info-ZIP User Forum.)
+- Windows Explorer lists wrong sizes for large files.  Fixed a bug where
+    uncompressed sizes greater than 4 GiB were displayed incorrectly in
+    Windows Explorer on Windows 7.  It was confirmed that Windows Explorer
+    does not correctly read extra fields in a zipfile, but Zip is updated
+    to work with what Windows Explorer expects.  This bug seems fixed in
+    Windows 10.  More on this bug can be found here:
+    http://social.technet.microsoft.com/Forums/windows/en-US/6a60399f-2879-4859-b7ab-6ddd08a70948/
+- VMS -V LZMA bug.  Fixed bug where specifying -V on VMS with LZMA
+    compression could produce a corrupt archive.
+- Append (>>) issue.  An issue where output to >> (append to file) was
+    broke has been fixed.  (This was actually two different bugs, one on
+    Unix and a different one with similar results on Windows.)
+- Returned error codes.  Some error return codes in specific situations
+    have been updated to more closely describe what happened.  For instance,
+    distinguishing an empty archive from names not being matched.
+- Windows piping bug.  Fixed a bug where Zip crashed on Windows when
+    outputing to stdout.
+- Debian updates.  Various updates received from Debian have been
+    implemented.
+- Disk zero bug.  Fixed bug where the value of the archive variable
+    Total Disks was being set to zero instead of 1 by some utilities
+    not following the rules.  Total Disks should be 1 for a single
+    disk archive.  Technically nothing was wrong with Zip so this was not
+    a bug, but now Zip accomodates this.
+- New error codes.  Added new error code ZE_COMPILE (19) for compile choice
+    errors (for instance, when features are compiled in that actually can't
+    be supported on that port, like large file support).  Added new error
+    code ZE_ZIP64 (20) for errors associated with Zip64 not being supported.
+    Added new error code ZE_CRYPT (21) for errors related to encryption.
+    Added new error code ZE_COMPRESS (22) for errors related to compression
+    methods.  Added new error code ZE_BACKUP (23) for errors associated with
+    the -BT backup feature.  Added new error code ZE_DEPTH (24) that is
+    returned when a maximum recursion depth is exceeded (such as for
+    argument files).  Added new error code ZE_SPLIT (25) for multi-part
+    (split) archive errors.  New error code ZE_UNZIP (26), which is
+    returned when -T is used to test an archive, but the unzip can't be
+    run or does not have a needed feature.  ZE_TEST is now reserved for
+    when unzip fails an archive.
+- Symlink pipe bug.  Fixed bug where Zip fails to store symlinks when
+    output is pipe.
+- ZipSplit bug.  A bug involving a pointer cast that caused ZipSplit to crash
+    in some situations as been fixed.  Other fixes.
+- Password errors.  Errors when entering passwords now return error ZE_CRYPT
+    (21) instead of ZE_PARMS (16).
+- -ll LZMA bug.  Fixed bug where LZMA would request a single byte from
+    iz_file_read(), but when -ll (Windows to Unix line end conversion) was
+    used LZMA would get zero bytes returned and assume end of file.  Also
+    fixed similar issue with -l (Unix to Windows line end conversion).
+- Traditional encryption split bug on Windows.  On Windows, a bug that
+    prevented the .z01 split from being closed when a split archive was being
+    created and Traditional (ZipCrypto) encryption was being used, leaving a
+    temp file, has been fixed.
+- OEM conversions no longer applied to Unicode.  On Windows, OEM character set
+    conversions are no longer being incorrectly applied to Unicode.
+- Archive comment bug.  Fix archive comment line end bug where line end
+    conversions were off by one, generating an extra newline in the comment.
+- -r warning bug.  Fix bug where a -r command that results in no matches
+    resulted in a warning with a command line suggestion, but this suggested
+    command line could overflow the error message buffer.  The message now
+    does not include the reparsed command line.
+- -sd can be logged.  If a log file is open, the output of -sd (--show-debug)
+    is now included.
+- -R documentation updated.  It was noted that the description of -R pattern
+    recursion was not correct (perhaps way off).  The docs have been updated
+    to clarify just how this works.  (See the forum thread for more info:
+    http://www.info-zip.org/phpBB3/viewtopic.php?f=6&t=492)
+
+Utilities (ZipCloak, ZipNote, and ZipSplit):
+- ZipSplit long output names.  On ports that support it, ZipSplit now allows
+    for output file names longer than 8 characters.
+- Long option support and some improvements to ZipCloak, ZipNote, and
+    ZipSplit.
+
+Documentation and manuals:
+- Numerous updates and clarifications in the manuals (man pages).
+- Shipped manuals (plain text versions of man pages) have been moved from
+    the top-level directory to a new docs/ directory.
+- Updates in the plain text man page generation scripting.
+- CHANGES now split in pre and post Zip 3.0 parts.
+
+Other:
+- Using -FS (filesync) and -sf (show files) together now lists the Add,
+    Freshen, and Delete operations needed to make the archive current,
+    effectively listing the differences between the archive and the file
+    system.
+- Progress pinging.  User-triggered progress messages provide some (limited)
+    information to an interactive user.  On VMS, usual Ctrl/T trigger used.
+    On Unix(-like) systems, "kill -USR1 <pid>" command in another process
+    used.  (A new -si option reports Zip process ID for this purpose.)  Set
+    macro ENABLE_USE_PROGRESS to enable this feature.
+- .zipx files.  WinZip .zipx files can now be opened and processed, except
+    for entries using compression methods Zip does not yet recognize (such
+    as JPEG).
+- Binary/text checking.  New -BF (--binary-full-check) option allows checking
+    entire files for binary instead of just the first buffers.  If -l, -ll or
+    -a are used, -BF is on by default.
+- Folders in archives need 2.0.  Folders stored in archives now are marked
+    as requiring Version Needed To Extract of 2.0, as AppNote requires.
+
+-----------------------------------------------------------------------
+
+New things in Zip 3.1c
+
+Libraries:
+- Update EXPENTRY entries for DLL.
+- Update DLL interface.  Add feature list that is returned to user.  Add
+    support for setting compression method from DLL.  Keep DLL Version fixed
+    at Zip 3.1 while DLL interface remains backward compatible, allowing DLL
+    user to check if DLL is compatible with calling code.  Add
+    ProgressReport callback giving user percent complete progress reports
+    and allowing termination during large file operations.  Add feature list
+    string to Version callback so user can check what features are compiled
+    in and enabled.  Support separate Exclude Before Date and Include Before
+    Date so DLL user can set date range.  Fix bug in DLL UTF-8 option bit
+    checks.  Various cleanup changes.
+- Add bzip2 support to Windows DLL and LIB MSVS 6 projects.
+- Incomplete update of WinDLL C example.  Should be completed next beta.
+- More or less complete update of VB example that uses latest DLL
+    interface structures, sets up a ProgressReport callback, and implements
+    new UTF8 options.
+
+z/OS and MVS:
+- New EBCDIC -aa option to skip binary check.  Update EBCDIC message
+    display code to use standard display and logging functions.  Other
+    EBCDIC updates, including better handling of unprintable characters.
+- z/OS and MVS updates, including addition of 64-bit large file support.
+    Fixes to -aa and -MV options to better support MVS.
+- MVS and z/OS makefile updates.  Create target for zos, which now works
+    like the generic target, and redirect os390 target to the zos target. 
+    Detect z/OS or OS/390 system, and set appropriate flags.  Detect IBM C
+    compiler and set maximum optimization level (this produced a 3-4x
+    speedup in testing).
+- Add z/OS readme.
+
+VMS:
+- For VMS, avoid saving a user-specified version (";1") when the
+    user-specified file is a directory.  Fix to eliminate annoying
+    %SET-E-PRONOTCHG messages when SET PROT failed during "zip -m" directory
+    deletions.  Update handling of exit codes.
+
+MAC:
+- Minor Apple fixes.
+
+Bug fixes and patches:
+- Fix file name memory leak.  Fix problem where patterns are not
+    matching stored paths when the -j option is used to strip the path.  Fix
+    split_path bug and memory leak.  Fix entries count rollover bug
+    resulting in some archives with large numbers of entries being rejected.
+- Add Fedora stack markings patch from Debian to prevent stack from being
+    executable.
+
+Other:
+- Update extended help.
+- Add new options -dt (--display_time), -de (--display_est_to_go), and
+    -dr (--display_rate) options.  Option -dt displays the time each entry
+    is started and uses standard timing to one second resolution.  Option
+    -de provides an estimate of the time remaining to complete the operation
+    based on the average throughput rate so far.  Option -dr displays the
+    current estimated throughput rate.  Options -de and -dr use microsecond
+    timing to get better rate estimates.
+- Added checks for uname -m, uname -o, uname -p, uname -r, uname -s, and
+    uname -v to version information.
+- If logfile is specified as "-", suppress normal output (as -q) and
+    send log output to stdout.
+- Fix formatting of -dg global dot output.
+- Allow negating -j as replacement for -p, which is now deprecated.
+
+-----------------------------------------------------------------------
+
+New things in Zip 3.1b
+
+Libraries:
+- Fixes and structure enhancements for DLL.  Update DLL build parts of
+    makefiles.  Do not force NO_ASM for DLL to allow build scripts to
+    determine setting.
+- VB example update.
+- Static library fixes.
+- Header file include updates for WinDLL.
+- Change settings to compile LIB library for multithreading projects
+    as DLL already did.
+- Add examples directory to source tree and organize examples in
+    directory tree.  Add LIB examples.  Fix example.exe build rules.
+- Add optional bzip2 support for DLL build.
+- Update WinDLL tree to be more consistent.
+- Remove old borland dll and lib from WinDLL contents list.
+
+Unix:
+- Update Unix configure and makefile to add additional parameters for
+    ZLIB and PROD destination directory.
+
+Windows:
+- Use Windows 64-bit fseek and ftell as available to more modern compilers.
+
+VMS:
+- Fixes and updates to character set handling for VMS.  Change from
+    \ to ^ for default escape character for VMS.  Update handling of
+    escapes.
+- Add choosing of output directory to VMS build.
+- Fix VMS ACL buffer overrun problem.  Update VMS command descriptions.
+- Link updates for VMS.
+
+z/OS and MVS:
+- EBCDIC and MVS fixes for file includes, tty detection, better error
+    reporting for file opens, and character exceptions for binary detection.
+- Add -MV option to control how MVS paths are stored.
+- Add -aa option to force all files to be processed as text files
+    (including EBCDIC and line end translations).  Useful for moving
+    EBCDIC files (as from Z/OS) to ASCII systems.
+
+Acorn:
+- Additional Acorn/RISCOS fixes.  Use APCS-32 build and C swiven code.
+    Add GAS versions for GCCSDK 4 (ELF).  Simplified indirect variable
+    loading.  Update Acorn ReadMe.  Change to kernel OS error calls.
+    Change from binary srcrename to BASIC version.
+
+Languages and Unicode:
+- Update to local character set detection and UTF-8 activation.  Fixes
+    for MAEMO OS.
+
+Bug fixes and patches:
+- File close bug in ZipNote fixed.
+- Fix bug in character set conversions causing illegal memory access.
+- Fix a few memory leaks.
+
+Other:
+- License update that removes requirement for additional documentation
+    when binary includes option to display license.
+- Change matching of command line arguments to file and archive paths
+    to use internal format paths instead of local OS format paths for
+    consistent matching.
+- Add compatibility defines for VC++ 8 and newer.
+- Add new -pp option to allow adding a prefix to archive paths.
+- Add missing "delete resource binaries" (*.res) command to clean
+    target.
+- Minor updates to logging.
+- Pass Zip password (from -e or -P) to unzip when testing archive.
+
+-----------------------------------------------------------------------
+
+New things in Zip 3.1a
+
+Libraries:
+- WINDLL fixes.
+- Update WINDLL C example.
+
+MSDOS and Windows:
+- Compiler makefile updates for MSDOS and WIN32 ports.
+
+VMS:
+- VMS bzip2 fixes.
+- Add support for ZLIB for VMS.
+- Better handling of VMS dots.
+
+MAC:
+- Add preliminary support for Mac OS X file resource data (uses Unix port).
+- Add support for -df option to Unix Apple (Mac OS X) to only save data
+    fork.  Add new option -as to save in Apple sequestered format.
+
+Acorn:
+- Update Acorn port.  (Thanks to Jeffrey Lee.)
+
+Languages and Unicode:
+- Add support for -UN=N (no Unicode) and -UN=U (store Unicode as native
+    UTF-8) options to dll interface.
+
+Bug fixes and patches:
+- Fix UTF-8 bug where using native UTF-8 setting created a wrong central
+    directory size in the End Of Central Directory.
+- Debian patch 844_003 with fixes for manual text.
+- Debian patch 5988_006 to change INSTALL_PROGRAM to INSTALL in makefile
+    for manuals.
+
+Other:
+- Remove tabs from some messages.
+
+-----------------------------------------------------------------------
+
+New things in Zip 3.0 since Zip 3.0h
+
+- Unicode fixes.
+- Test and fix various ports as needed.
+- Update Win32 resource to support more Windows ports.
+- Add djgpp 2.x makefile that includes bzip2.
+- Add Win32 version resource to Win32 executable.
+- Bug fixes.
+- Documentation updates.
+- Package for release.
+
+
+New things in Zip 3.0h
+
+- Allow -@ and -x to work together.
+- Unicode code cleanup.
+- Allow forcing use of UTF-8 storage in standard path and comment.
+- Update symbolic link checks.
+- Add support for storing 32-bit UIDs/GIDs using new extra field.
+  Backward compatible support for the old 16-bit UID/GID extra field
+  remains if Zip is compiled on an OS that has 16-bit UID/GID
+  storage.
+- Update VMS notes.
+- Directory scan using -AS (include only files with Windows archive
+  bit set) now ignores archive bit on directories to include all files
+  with archive bit set in all directories.  Also, to avoid empty
+  directories being created, -AS now does not store directory
+  entries.
+- Add Unix IBM support.
+- Change -W to -ws to free -W for later use.
+- Fix large file support for MinGW.
+- Fix large file support for bzip2.
+- Fix compile error in ZipCloak when UNICODE_SUPPORT is not enabled.
+- Fix Unicode bug in ZipCloak involving Unicode paths.
+- Long Unicode escapes changed from #Lxxxxxxxx to #Lxxxxxx to shorten
+  paths with escaped Unicode.
+- Bug fixes.
+
+
+New things in Zip 3.0g
+
+- Add split support to VB project for Zip64.
+- Disable reading of Unix FIFOs unless new -FI option used to avoid an
+  archiving operation stopping when it hits an active unfed FIFO.
+- The "[list]" wildcard expression (regular expression matching of any
+  character or range of characters in list) is now disabled on DOS and
+  Windows as it has caused confusion when filenames have [ and ] in
+  them.  The new -RE option reenables it.
+- Add negation to many display options such as -dc and -db.
+- Allow -FF to read and fix archives having local entries that appear
+  after central directory entries.
+- Bug fixes.
+
+
+New things in Zip 3.0f
+
+- bzip2 - The bzip2 compression method looks supported for at least
+  Windows, Unix, and VMS using the bzip2 library.  A new option, -Z cm,
+  selects the compression method.
+
+- Split archives - Can now use -s to create a split archive.  The
+  default is to update split files as the archive is being written,
+  which requires all splits to remain open until the archive is done.
+  This should be no problem when writing the archive to a hard drive,
+  for example, and this approach creates archives that should be
+  supported by all unzips that support splits.  Adding the -sp option
+  enables split pause mode that instead writes splits that do not
+  need updating and pauses Zip after each split.  This allows splits
+  to be written directly to removable media, however -sp archives
+  may not be as universally compatible.
+
+- Unicode support - Zip now stores Unicode paths that should be more
+  portable across character sets and languages.  The unzip must have
+  Unicode support enabled or the Unicode paths are ignored.  If
+  reading an archive with Unicode paths, unsupported characters are
+  replaced by #Uxxxx and #Lxxxxxxxx escapes in the file name.  Option
+  -UN controls how Unicode is handled.  Also, on systems where the
+  current character set is UTF-8, preliminary support for the new
+  General Purpose Bit Flag, bit 11, UTF-8 flag, that indicates UTF-8
+  is stored in the path and comment fields is implemented for paths.
+- Unicode on Win32 - On WIN32 systems that support the wide character
+  calls (mainly NT and later systems using NTFS), when UNICODE SUPPORT
+  is enabled Zip will now do directory scans using Unicode and convert
+  the Unicode paths to the local character set for storage in the standard
+  path field and store UTF-8 in the Unicode extra field.  This allows
+  directory scans to complete successfully regardless of the character
+  set the path is in.  On Win9x systems wide character scans are not
+  generally supported and Zip automatically uses a local character scan
+  instead.
+
+- Keep extra fields option - The default operation has been, and continues
+  to be, to read then strip old extra fields when reading entries from an
+  existing archive and then recreate the extra fields that Zip knows about.
+  Extra fields specific to each operating system get added by default also.
+  The new option -X- (negated -X) keeps any old extra fields, copying
+  them to the updated archive unchanged (unless Zip has updated them).
+  The unnegated -X still strips most all extra fields except Zip64,
+  Unicode, and UT time.
+
+- License - minor updates to the license.
+
+- Windows OEM - When compiled with WIN32_OEM (the default for WIN32),
+  Zip on WIN32 now stores OEM paths, which should be more compatible
+  with other zips and should fix some character set problems.
+- Windows Archive Bit support - On Windows can now use new -AS
+  (include if archive bit set) option to select files with the DOS
+  archive bit set and use new -AC (clear archive bits) option to clear
+  the archive bits on files after the archive has been created.
+  But -DF is probably better.
+
+- Difference mode - A new option -DF (--dif) creates an output archive
+  that includes only files changed or new since the input archive was
+  created.  Can use to create incremental backups.
+- File Sync - The new option -FS enables File Sync, a new mode that
+  synchronizes the entries in an archive with the files on the file
+  system, adding updating, and deleting entries as needed.  This
+  should create the same results as creating a new archive, but
+  since existing entries are copied, may be much faster.
+
+- Copy Mode - A new --out option allows creating a new archive with a
+  different name than the input archive, leaving the input archive
+  unchanged.  This allows updating split archives.  It also allows
+  for a new copy mode to select entries in one archive and copy them
+  directly to a new archive.
+- Empty archives - Now an empty archive is created when -i or -i@ is used
+  and the file patterns given do not match anything.  This has been
+  requested to support scripts.
+
+- Global dots - A new -dg option now displays progress dots as -dd does,
+  but instead of displaying them for each file, the dots track the total
+  bytes read for the archive.  The -dg option also works when -q is used
+  to disable most output, which allows for something like zip -qdgds 100m
+  to be used to not display specific files but display a dot every 100 MB
+  as a global status.
+- Date range - Can now use -t and -tt to set a date range
+- Fix options - Option -F redone and can recover files from an archive
+  with a mostly complete central directory more reliably, but no longer
+  can handle truncated archives.  Option -FF redone and now can salvage
+  files from slightly more damaged archives, including truncated archives.
+  In some ways -F is less powerful but more stable than it was and -FF will
+  be needed where -F in Zip 2.32 was enough.  One big change is -F and -FF
+  both now support split archives.
+- Console writing - Updates to how messages are written to the console have
+  been made including more consistent handling of line breaks.
+- Show Files options - Option -sf lists the files that would be operated
+  on.  This option can be used alone to list the files in an archive.
+  Also see options -su and -sU for showing Unicode paths.
+- UnZip Check - Now check that UnZip 6.00 or later is being used for
+  unzip if testing a Zip64 archive.  A new option -TT can be used to set
+  the unzip to use with the -T check.  Currently UnZip does not support
+  split archives so split archives can't be tested by UnZip.
+- Streaming - Directories are now handled better when streaming.
+- Case matching - Normally all matching against archive entries is case
+  sensitive, so *.BAR will not match or find foo.bar in an archive
+  when deleting, copying, or freshening entries (deleting and copying
+  only on VMS).  New option -ic (--ignore-case) enables case insensitive
+  matching.  Currently -ic is only implemented on WIN32 and VMS.
+
+- Delete date bug fixed - Bug when using -d to delete files while
+  using -t or -tt to select the files based on date is fixed
+- Large file encryption bug fixed - Fix for bug that very rarely
+  results in bad data being stored when deflating and encrypting
+  uncompressable data and resulting in CRC errors when extracting,
+  but the chance of error increases with file size (thanks to
+  WinZip for finding this bug).  See CHANGES for details.
+
+
+New things in Zip 3.0e
+
+- Bugs described in Debian patches 004 (unix configure script update) and
+  005 (large path bug) fixed
+- Various fixes
+- Add optional running stats and also end stats if not all files could
+  be read
+- Options -l and -ll now do quick binary check on first buffer and skip
+  formatting if first buffer has binary - still check at end to note
+  if formatting was done on file that was later determined to be binary,
+  but now potential file corruption is generally avoided
+- Main binary check now uses new algorithm that should also treat UTF-8 and
+  other similar encodings as text, allowing proper line end translation
+  for UTF-8 files
+- When output is not updatable by seeking back and Zip64 is enabled, output
+  is forced to Zip64 to avoid possible later need for Zip64 when not enabled
+- More work on splits, but still not usable
+- Fixes for djgpp
+- Add log file capability to save all errors and optionally messages
+- Add code to test for a Zip64 archive when compiled without Zip64 support
+- New VC6 projects for Win32 and WinDLL
+- Updates to extended help
+- Changes to force-zip64 option
+- ZE_BIG error now given also for files too big to read or write
+- Fix file delete bug
+- Update license
+- Update export documentation
+- Add VMS extended filename support
+- Add directory traversal improvements, some for Win32 ports and some for
+  all ports, that can result in a 10 times increase in speed in some cases
+
+
+New things in Zip 3.0d
+
+- Some large file crypt fixes
+- Some updates to support WiZ
+- On VMS, changed -V (/VMS) processing to truncate file at EOF, allowing
+  greater compatability with non-VMS systems.  New -VV (/VMS=ALL) option
+  saves all allocated blocks in a file.  (Previously, -V did neither.)
+- On VMS, pushed 2GB file size limit with -V out to 4GB
+- On VMS (recent, non-VAX), with SET PROCESS /PARSE = EXTEND,
+  command-line case is preserved.  This obviates quoting upper-case
+  options, like -V, when enabled
+- On VMS, fixed problems with mixed-case directory names.  Also changed
+  to keep ODS5 extended file name escape characters ("^") out of the
+  archived names in simple cases
+- Changes to the display dots
+- Option -W should now force wildcard matching to not cross directory
+  separators.  For example, a/b*r/d will match a/bar/d but not a/ba/r/d
+- Option -nw should turn off all wildcard matching so foo[bar] is matched
+  literally and [bar] is not considered a regular expression
+- Atheos port
+- Debugging of Unix and VMS large file ports.  Most features may work now
+  on these ports for large files.  Still need to fix 2 GB to 4 GB when not
+  compiled with large file support
+- On VMS, added an open callback function which (where supported) senses
+  the process RMS_DEFAULT values for file extend quantity (deq)
+  multi-block count (mbc), and multi-buffer count (mbf), and sets the
+  FAB/RAB parameters accordingly.  The default deq is now much larger
+  than before (16384 blocks, was none), and the default mbc is now 127
+  (up from 64), speeding creation of a large archive file.  The "-v"
+  option shows some of the activity.  On old VMS versions, RMS_DEFAULT
+  sensing (GETJPI) fails (silently, without "-v"), and no changes will
+  be made.  Even there, (DCL) SET RMS /EXTEND = <big> can help
+  performance.  RMS_DEFAULT values override built-in default values.
+
+
+New things in Zip 3.0c
+
+- Converted to using 64-bit file environment instead of transitional functions
+  like fseeko64 for ports that support it
+- Added "--" argument to read all following arguments as paths
+- Second help page added
+- Binary detection adjusted from 20% binary is binary to 2%
+- When -R and -i used together now -i has precedence over -R
+- Archive names with spaces can now be tested on MSDOS and Win32
+
+
+New things in Zip 3.0b
+
+- Fixed ifdefs so can test base code by compiling with
+  NO_LARGE_FILE_SUPPORT, then compiling with NO_ZIP64_SUPPORT to test
+  64-bit file calls (if port enables) but otherwise use base code, and
+  compiling normally to enable Zip64 code
+- Unix Zip64 fixes - should now be able to create and read large files
+- WinDLL changes to support Zip64.  Zip 3.0 dll named Zip32z64.dll
+- New VB example to show use of Zip32z64.dll
+- New options -sc (show final command line and exit) and -sd (show each
+  step zip is doing, a little different than verbose which is still there)
+  added to help debug but both or at least -sd might go away in the
+  release
+- Some minor posted bugs fixed (see Changes)
+
+
+New things in Zip 3.0a
+
+- Initial Zip64 support allowing large files and large numbers of files
+- New command line processor
+- Other changes, see file Changes
+
+
+Note:  Zip 2.4 was never released.  That code was the start of the Zip 3.0
+effort above.
+
+
+New things in Zip 2.3
+
+- IBM OS/390 port (Unix like, but EBCDIC) by Paul von Behren
+- Apple Macintosh (MACOS) port by Dirk Haase
+- Theos port by Jean-Michel Dubois
+- Multibyte characterset support by Yoshioka Tsuneo
+- Support for ISO 8601 date format with -t and -tt options
+- Info-ZIP license
+
+
+New things in Zip 2.2
+
+- BEOS port by Chris Herborth
+- QDOS port by Jonathan Hudson
+- TANDEM port by Dave Smith
+- WINDLL port (16-bit Win 3.x and 32-bit WinNT/Win95) by Mike White
+- SYSV packages support by John Bush
+- zip -P SeCrEt encrypts entries in the zip file with password SeCrEt
+  (WARNING: THIS IS INSECURE, use at your own risk)
+- zip -R recurses into subdirectories of current dir like "PKZIP -rP"
+- zip -x@exclude.lst excludes files specified in the file exclude.lst
+- zip -i@include.lst includes files specified in the file include.lst
+- zip -@ only handles one filename per line, but supports whitespace in names
+- zip -t mmddyyyy, 4 digit year number for uniqueness of years beyond 2000
+- zip -tt mmddyyyy only includes files before a specified date

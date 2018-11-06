@@ -1,0 +1,187 @@
+Zip 3.1d Announcement
+
+We have posted Zip Beta 3.1d, 15th November 2015.
+
+-----------------------------------------------------------------------
+This is a beta release, but also a Zip 3.1 release candidate.  Zip 3.1d
+implements the full feature set planned for release Zip 3.1.  Please
+review the feature set for completeness and ease of use as well as look
+for any bugs we may have missed.  Another release candidate will be
+posted only if needed to address found issues.
+-----------------------------------------------------------------------
+
+Please read the documentation and then try it out.  We suggest starting
+with README, essentially the release notes for Zip 3.1d.  Then take a
+look at WHATSNEW, a detailed list of what's new in Zip 3.1d, including
+feature changes and additions as well as key bug fixes.  Then look over
+INSTALL if you will be installing Zip 3.1d.  Finally, scan through the
+extended help (zip -hh).  Then try it out, referring to the manual
+(zip.1, and the plain text version docs/zip.txt) as needed.
+
+Comments, bugs, and suggestions can be posted on the Info-ZIP forum
+(see below) or sent to us directly using our web email form
+(http://www.info-zip.org/zip-bug.html).
+
+-----------------------------------------------------------------------
+
+Quick list of major changes/enhancements in Zip 3.1d (the detailed list
+is in WHATSNEW):
+
+Encryption, compression:
+- AES encryption.  Compatible with WinZip AES encryption.  (-Y option.)
+- LZMA and PPMd compression (in addition to Deflate, BZIP2 and Store).
+    (-Z option.)
+- Options -1 through -9 and -n enhanced to provide more control over
+    compression method and level used.
+- Keyfiles supported.  (-kf option.)
+
+Command line:
+- Change root input directory.  (-cd option.)
+- Read list of files/patterns from file.  Like -@, but read input files
+    from file.  (-@@ option.)
+- Argfiles.  Read white space separated Zip command line arguments from
+    file and insert into commmand line.  File can include any valid
+    arguments, including options.  (@argfile)
+- Verbatim mode.  Arguments following "--" on command line now are read
+    without processing wildcards, options, or argfiles.  So
+    "-leading-dash-file.txt", "@justafile", and "wild*file.txt" are all
+    read as file names after "--" on the command line.
+- Allow "-" with --out to output to stdout.
+- Allow "-@@ -" as equivalent to -@ to read files from stdin.
+- Arguments now limited to 8k bytes; paths to 32k bytes.
+
+Managed backups:
+- Managed backups.  Creates backup sets.  Supports full, differential,
+    and incremental backups.  (-BT option.)
+- CD_ONLY compression method.  Only stores file list and meta data.
+    Can't be used to restore files, but these small archives can be
+    used as the base archive for differential and incremental archives.
+
+Libraries:
+- Revamped LIB/DLL interface.  Zip static and dynamic libraries now
+    include standardized Version information and a features list that
+    should keep the version interface stable in the future.  Updated
+    and added callbacks for greater control by caller.  New ZpZip()
+    entry point used for both LIB and DLL, accepts Zip command line to
+    execute, replacing old options structure (which is now deprecated).
+- LIB output control.  Standard Zip output for the LIB is now routed
+    through the Print callback, allowing caller to use or discard.
+    (DLL already provided this.)
+- Updated Windows LIB/DLL examples.  Includes full-featured Visual
+    Basic example that shows how to fully use the new interface.
+- New Unix/VMS LIB example.  Zip static library can now be used on Unix
+    and VMS.  New example shows how.
+
+Unix:
+- Quoted/escaped wildcards in names of input files on Unix command line
+    now processed by Zip.  Previously these were just handled by Zip as
+    part of the names.  Now these wildcards are processed (unless
+    wildcards are disabled or verbatim mode used).  This allows spaces
+    in quoted names with wildcards to be handled by Zip.
+- Alphabetical sorting.  Found files on Unix now returned in alphabetical
+    order.  Previously files were returned in a more or less random
+    order, which was the order these files were stored in archives.
+- Unix builders updated to provide more information and flexibility.
+- Files from stdin now marked as regular files (not pipes).
+- Named Pipes now always stored.  (-FI still needed to read contents,
+    otherwise an empty file is created.)
+
+MAC:
+- MAC OS X (Apple Unix) resource storage.
+
+Windows:
+- On Windows XP and later, Zip now reads Unicode command line and
+    displays Unicode paths (within limit of console).  Include files
+    on Windows (-@@, -i@, -x@ and argfiles) can include UTF-8.
+- Windows symlinks (-y).  Both file and directory symlinks supported.
+    Requires UnZip 6.10 or later to restore.
+- Windows mount points (-yy).  New option -yy controls how Windows
+    reparse points are handled.  Storing of mount points not yet
+    supported.
+- Windows long paths.  Paths longer than 260 characters can now be
+    stored.
+- Windows 64-bit compile supported.
+
+z/OS and MVS:
+- z/OS and MVS updates.  (Some untested in this beta due to lack of
+    support for these platforms.)
+
+Unicode and languages:
+- UTF-8 now stored native by default.
+- Limited optional use of iconv for some local-Unicode-local conversions.
+- Can put UTF-8 paths in log file for viewing by UTF-8 aware editor.
+- Updated locale detection code.
+- No automatic switch to UTF-8 locale.  Current locale must be UTF-8
+    when Zip starts to use UTF-8 as native.
+- No more transliteration.  When converting from Unicode to local, any
+    unsupported characters now stored as Unicode escapes rather than as
+    a best fit character, allowing deterministic conversion between
+    escaped local and Unicode versions of paths.
+
+Streaming:
+- Streaming mode.  New option -st creates archives with information
+    sufficient for a stream unzipper to fully extract files.  (This may
+    be the default when Zip 3.1 released.)
+
+Large files and Zip64:
+- Better Zip64 selection support when input files near 4.0 GiB.  -fz-
+    should no longer be needed except in rare cases.
+
+Dates, times:
+- Can specify times for -t and -tt date range options.
+- Option -pt (performance time) times how fast Zip executes.
+
+Logging:
+- -lF creates log using archive name as name.
+
+Updating output paths:
+- Path case changing using -Cl and -Cu.
+- Prefix added/updated paths (-pa).
+
+Stats, listings, and version:
+- Quick version option -vq outputs one-line version that can be
+    used by scripts.
+- Enhanced -sf listings using -sF.  Can include uncompressed size.
+- Options -FS (file sync) and -sf (show files) can now be used together
+    to show differences between an archive and the file system.
+
+Bug fixes and error codes:
+- "Bug" fixed:  Windows Explorer lists wrong sizes for large files.
+    Really Windows Explorer bug, but Zip modified to account for it.
+- Bug fixed:  VMS -V LZMA bug.
+- Bug fixed:  Append (>>) issue on both Unix and Windows.
+- Bug fixed:  Windows piping bug.
+- "Bug" fixed:  Disk zero bug.  (Not really bug, but working with output
+    from another buggy utility.)
+- Bug fixed:  Symlink pipe bug.  Zip failed to store symlinks when output
+    is pipe.
+- Debian updates.
+- New error codes ZE_COMPERR (compile choices errors), ZE_COMPRESS (errors
+    related to compression methods), and ZE_BACKUP (errors associated with
+    managed backups).  Also ZE_DEPTH (for recursion depth), ZE_CRYPT (for
+    encryption errors) and ZE_SPLIT (for split archive errors).
+- Inconsistencies with -l and -ll handling of line ends fixed.
+- Password errors now return ZE_CRYPT.
+- LZMA -ll bug fixed.
+- Windows OEM conversions no longer applied to UTF-8 paths.
+- -r warning bug (where message could exceed buffer) fixed.
+- Traditional encryption split archive bug on Windows fixed.
+
+Documentation:
+- Plain text manuals (zip.txt, ...) moved to new docs/ directory.
+
+Other:
+- Progress pinging (user-triggered progress messages).
+- ZipCloak, ZipNote and ZipSplit now support long options.
+- WinZip .zipx files mostly supported.
+- Binary/text checking updated.  Can now do full binary checks using -BF.
+    If doing -l, -ll or -a conversions on text file that has binary at
+    end, Zip will now reprocess file as binary.
+- Folders in archives now have Version Needed To Extract set to 2.0, as
+    AppNote requires.
+- Comment length limited to 32765 characters.
+
+As always, see the Zip manual page and the extended help in Zip
+for details on what Zip has and how to use all features.
+
+Enjoy!

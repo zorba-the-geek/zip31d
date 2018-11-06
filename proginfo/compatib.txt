@@ -1,0 +1,137 @@
+This file provides some rough feature comparisons between various utilities
+out there.  We make no guarantees about the validity of these results.  They
+are just provided as is.  We also do not make any assertions about fitness
+of any product for any particular use or that any one product is better than
+another.
+
+If any of the data below is wrong or you have additional information that
+can be added, let us know.
+
+
+---------------------------------------------------------------
+Compatibility tests
+-------------------
+
+Verified against WinZip (19.5)
+------------------------------
+- WinZip does ZipCrypto (Zip Traditional encryption) entries from Zip.
+- Does AES128, 192, 256 encryption from Zip.
+- Does ZipCrypto split archives.
+- Does AES split archives.
+- Can't extract Windows long paths.  Long paths skipped.
+- Does display Unicode paths, can extract them.
+- Only displays entry comments in Detail output.  UTF-8 entry comments
+    not displayed.
+- Does archive comments, but can only be ASCII.
+- Does ignore Zip64 Placeholder ef (test9_deflate_dm.zip), handles
+    near Zip64 archive fine.
+
+
+Verified against UnZip (6.1c18)
+----------------------------
+- Can only show entry comments in verbose listing.
+- Can't extract Windows long paths.
+- Does ignore Zip64 Placeholder ef (test9_deflate_dm.zip), handles
+    near Zip64 archive fine.
+
+
+Verified against Windows Explorer (Windows 7)
+---------------------------------------------
+- Does ZipCrypto encryption.
+- Can't handle AES encryption.
+- Does split archives.
+- Does split archives with ZipCrypto encryption.
+- Refuses to open archives with long paths.  However, once created
+    Windows Explorer will navigate them.
+- Can't display UTF-8 paths in zip archives, garbles text.  Can't
+    extract Unicode paths.
+- Can't display entry comments.
+- Can't display archive comments.
+- Does ignore Zip64 Placeholder ef (test9_deflate_dm.zip) apparently.
+    Though no "test" capability, can extract near Zip64 archive entries
+    fine.
+
+
+Verified against 7-Zip
+----------------------
+- Does support ZipCrypto (Zip Traditional) encryption.
+- Does support AES encryption.
+- Can't handle split archives, as seems it has its own non-standard
+    split format.
+- Does support extraction of Windows long paths.
+- Does extract Unicode paths.
+- Does support ASCII and UTF-8 entry comments.
+- Does show archive comments, but garbles UTF-8.
+- Does ignore Zip64 Placeholder ef (test9_deflate_dm.zip), handles
+    near Zip64 archive fine.
+
+
+Chart form:
+
+              |  Zip   | UnZip   | WinZip  | Windows 7 | 7-Zip    |
+Feature       | 3.1d38 | 6.1c18  | 19.5    | Explorer  | 9.20     |
+--------------------------------------------------------------------------------------------
+Encryption    |        |         |         |           |          |
+  Zip Trad*   | Yes    | Yes     | Yes     | Yes       | Yes      |
+              |        |         |         |           |          |
+  WinZip AES  | Yes    | Yes     | Yes     | No        | Yes      |
+              |        |         |         |           |          |
+Splits        | Yes    | Yes     | Yes     | Yes       | No       |
+              |        |         |         |           |they use  |
+              |        |         |         |           |own split |
+              |        |         |         |           |format    |
+              |        |         |         |           |          |
+Splits w/     | Yes    |  ?      | Yes     | Yes       | No       |
+ Encryption   |        |         |         |Trad only  |          |
+              |        |         |         |           |          |
+Windows       | Yes    | No      | No      | No        | Yes      |
+ Long Paths   |        |         |truncates|won't open |          |
+              |        |         |long path| archive   |          |
+              |        |         |         |           |          |
+Unicode       | Yes    | Yes     | Yes     | No        | Yes      |
+ paths        |        |w/issues |         |           |          |
+              |        |         |         |           |          |
+Show entry    | Yes    | No      | No      | No        | Yes      |
+ comments     |        |except in|except in|           |removes   |
+              |        |"verbose"|"detail" |           |line ends |
+              |        |         |         |           |          |
+Show archive  | Yes    | Yes     | Yes     | No        | Yes      |
+  comment     |        |         |if asked |           |          |
+              |        |         |         |           |          |
+UTF-8 entry   | Yes**  |  ?      | No      | No        | Yes      |
+ comments     |        |         |         |           |          |
+              |        |         |         |           |          |
+UTF-8 archive | Yes*** |  ?      | No      | No        | No       |
+ comments     |        |         |         |           |          |
+              |        |         |         |           |          |
+Handle Zip64  | Yes    |  ?      | Yes     | Yes       | Yes      |
+ Placeholder &|        |         |         |           |          |
+              |        |         |         |           |          |
+Handle "pipe" | Yes    | Yes     | Yes     | Yes       | Yes      |
+ entries &&   |        |         |         |           |          |
+
+?   = Not tested
+*   = Standard Zip encryption (Trad/ZipCrypto) with data descriptors
+**  = Can't edit UTF-8 entry comments on Windows (yet)
+*** = No one else supports, can't edit UTF-8 comments on Windows (yet)
+      (Archive comments must not contain a PK signature, as the only
+      way to locate the beginning of the End Of Central Directory record
+      is to search back for the EOCD signature.  So up to this point only
+      ASCII has been allowed in the archive comment.  However, if no
+      binary is allowed in the archive comment, then proper UTF-8 (which
+      can't form a PK signature if binary is not allowed) should be OK.
+      The AppNote does not exclude use of UTF-8 in the archive comment.)
+&   = Ignores the new Zip64 placeholder extra field when present
+&&  = Entries created from Unix Named Pipes and marked w/ attrib "p"
+      ("Handle" currently means able to restore content of entries marked
+      as such as a regular file.  No one restores pipes, but this capability
+      might be added to UnZip.)
+
+Should test against PKZip.  There is a 30-day evaluation version
+for Windows.
+
+---------------------------------------------------------------
+
+
+Last updated 2015-07-26 (EG)
+

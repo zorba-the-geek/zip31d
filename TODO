@@ -1,0 +1,704 @@
+Todo list for Zip (last updated 2015-10-18).
+
+===============================================================================
+
+Before release of Zip 3.1 maybe
+-------------------------------
+
+- May be inconsistencies in how "=" is handled on command line:
+      zip archive file1 -sd= file2
+    Get "short option '=' not supported.
+    Should run some tests.
+- Is keyfile_pass needed after zip.c line 9635?
+- Gap tests.
+- Finish -DI.
+    (This is adding as a separate feature the capability now implemented
+    in -BT to look through a series of archives to create a diff (an
+    Incremental Diff) instead of just one as -DF (--dif) implements.)
+    (Should be simple to implement.  Just need to get a list of archives
+    in the order to be searched (base archive first).  So -DI gets a list
+    of archives similar to how -i gets a list of patterns.)
+    (This may wait until after Zip 3.1.)
+- Streaming Zip64 filter issue.
+    (When using Zip as a filter, if the local record used Zip64 (because it
+    didn't know better at that point, and so needed a Zip64 data descriptor)
+    but the central record didn't (because the file was actually 6 bytes (8
+    compressed)), should the archive use the Zip64 end records to flag this
+    as a Zip64 archive?  Or is the existence of the Zip64 extra field in the
+    local record enough?)
+- "zip -0 not supported for I/O on pipes or devices".  Why?
+- Translation of line ends to and from MAC.
+    (Does not look supported in iz_file_read() (zipup.c).  Does MAC now use
+    Unix line ends?  (Yes.))
+    (Probably will just edit docs to make -l and -ll just Windows <-> Unix.)
+    (Should be just doc changes.)
+    (-l and -ll only support Unix <-> Windows conversions.  Can look at this
+    again after Zip 3.1.)
+- Escape non-printable chars on display?
+    (Used to output ^X for control codes like ^G.)
+    (Should clean this up.  Maybe swap out ^X for Unicode escapes, but ^X
+    may be more useful for on-screen display.)
+    (Unicode escapes may address this.)
+- Deflate does not need -BF as it already does full file check.
+    (Added note.  As deflate can change to store, it may be necessary to keep
+    doing the separate check in iz_file_read().  trees.c set_file_type().)
+    (Maybe leave like it is for now.)
+- If huge archive and just updating entry comments (-c), maybe output something
+    while the entry copying is being done before start updating comments.
+- Support -FI=regular to store FIFO as regular file.
+    (May not be needed.  Seems others can handle/ignore the FIFO flag.)
+- Read Unicode comments from console on Windows.
+    (Requires opening input stream for comments as Unicode on Windows.)
+    (Support Unicode comments on Windows.  May need to use wide version of
+    fgets() (fgetws()) or ReadConsoleW() to read Unicode input.)
+- 32-bit v. 64-bit speed tests.  With and without assembly speed tests.
+    (Initial tests suggest Release Win32 is fastest, then Release x64, then
+    Release ASM Win32, then Debug Win32.)
+    (Should get this done and include preliminary results, maybe in
+    proginfo/perf_w32.txt.)
+    (Created proginfo/perf_win.txt and added the preliminary data.)
+- Binary detection on LZMA.
+    (LZMA does not handle binary/text detection the same as other methods.
+    -BF does not work for LZMA.  Block size (and so how far looks for binary)
+    depends on compression level.)
+    (This may have been related to -ll issue where asking to read 1 byte
+    returned 0 bytes and may be fixed.)
+    (Need to test.)
+- LZMA revert to store?
+    (This is not currently implemented for LZMA compression.)
+- What to do about "-i @file1 includepat @file2 ... @", which is valid but
+    user may not pick up on difference between "-i@file" and "-i @file ...".
+    (The syntax is correct and documented.  No change expected before release
+    of Zip 3.1.)
+- ZipNote should handle UTF-8 extra fields, UTF-8 bit.
+    (This gets complex.  May not be looked at until after Zip 3.1.)
+- Verify UTF-8 comments are properly handled.  (2015-04-22 EG)
+    (This may get moved to next beta.  UTF-8 comments require ability to
+    input UTF-8.  Currently using fgets to get input.  This works for Linux
+    using UTF-8 locale, but not for Windows.  For a Windows console probably
+    need to use ReadConsoleW to get Unicode (wide characters) and then need
+    to convert to UTF-8.)
+    (Given lack of Unicode comment support elsewhere, this may get moved to
+    next release, unless UnZip supports.  UTF-8 comment support should be
+    natural on Linux using UTF-8 locale, but for compatibility with other
+    utilities we may want to limit comments to ASCII.  PKZip may allow
+    UTF-8 comments and UTF-8 entry comments are supported by AppNote.  There
+    seems nothing preventing use of UTF-8 in archive comment (as UTF-8 would
+    not allow duplication of EOCDR signature).)
+- bfcopy() should be more efficient.
+    (Compare to 7-Zip, which is twice as fast.)
+    (Maybe use low-level reads and writes.  Increase buffer size?)
+- Output something during long pauses when just updating comments?
+- Probably should cache results of stat on zipfile.
+    (newname() in fileio.c.)
+    (There are multiple stats done.  May be able to cut this down.)
+- Check if -l and -ll undo each other.
+    (Tests using -l with "-pp l_" and -ll with "-pp ll_" create files where
+    the original matches the equivalent Windows or Unix version and the same
+    for the opposite line ends.  Seems to undo each other for a basic text
+    file like api.c.  Mixed line ends tend not to be recreated.)
+    (Should check buffer boundary cases.)
+    (Issue when CR at end of buffer fixed.)
+    (No additional work planned on this until after Zip 3.1, unless additional
+    bugs found.)
+- Way to flag deleted files in -BT diff and incr backups.  Probably would be
+    good for UnZip to support restoring a backup set.
+    (Lack of this capability prevents full mapping of backups to file system.)
+- Does Zip compare file dates/times using UT?  Should it?
+- Run out of disk space issue.  (Is ZE_TEMP error possible?)
+    (Additional tests planned before public beta goes out.)
+    (Did test on Win64 (Windows 7):
+    Created partition with 50 MB space.
+    Added files to zip.
+    Tried to zip into archive that would exceed size of partition.
+    With -sd, got:
+      ...
+      sd: Open zip file and create temp file
+      sd: Creating new zip file
+      sd: Temp file (2n): zia02908
+      sd: Zipping up new entries
+        adding: 31d44.zip (9.5M) (172 bytes security)
+      zip I/O error: No space left on device
+      zip error: Output file write failure (write error on zip file)
+    If zipfile exists:
+      sd: Open zip file and create temp file
+      sd: Creating new zip file
+      sd: Temp file (2n): zia10800
+      sd: Going through old zip file
+      sd: Zipping up new entries
+        adding: 31d44.zip (9.5M) (172 bytes security)
+      zip I/O error: No space left on device
+      zip error: Output file write failure (write error on zip file)
+    In either case don't get a Temp File (ZE_TEMP) error.  Get ZE_WRITE (14)
+    error.
+    It seems to get ZE_TEMP there needs to be something else going on that is
+    preventing the temp file from being opened.
+    Seems Zip is doing what it should.  Don't have time to look at more obscure
+    situations, like writing a temp file to a closed out CD.)
+    (Since not repeatable by developers, this may get postponed until after
+    Zip 3.1.)
+- Add support for multiple flag value options.  For instance, multiple -sF
+    needed to set multiple flags (-sF=usize -sF=comment).  Add support for
+    comma separated list, maybe (-sF=usize,comment).  This could also be used
+    with -UN.
+    (This may get looked at before release.)
+- Check for \r\n (instead of just \n) when formatting multi-line comments.
+    (May not be needed.  Assume \n always follows \r\n, so adding space
+    after \n to indent next line should be reliable.)
+    (May not be looked at for Zip 3.1.)
+- Option to inhibit sorting on Unix.
+    (Is it needed?)
+    (See if users have issues with sorting first.)
+- Look at matching only first char of method (zip.c, around 5100).  If another
+    compression method with same start letter added, this will break.  This may
+    get overlooked if another method is added.  Should do abbrevmatch() or
+    similar.
+    (Look at fixing limitation where first char of compression method must be
+    unique due to how suffixes are processed (globals.c around 255).)
+    (As additional compression methods not likely to be added to Zip 3.1, this
+    may wait until after Zip 3.1.)
+- Bug where if option requires value and no value provided memory error.
+    (Seems only a problem when options table not properly set up (fileio.c
+    around 7002 optname).  Stack corruption occurs when optionerr() returns.)
+    (Not able to duplicate - may have been issue with bad options table entry.)
+- Consider moving abbrevmatch() and strmatch() from util.c to fileio.c, or move
+    string_dup() and others to util.c.
+- Saving local character set in archive?  This is storing in the entry meta
+    data the character set detected by Zip.  The local character set/code page
+    is currently displayed by "zip -v".)
+    (The main reason for this is to allow direct conversions between file path
+    character sets, rather than going through UTF-8.  This could be useful for
+    EBCDIC platforms.  It might also allow content conversions, which are
+    currently outside the scope of Zip.  As one-for-one character conversions
+    between distinct character sets tends to result in unconvertable
+    characters, this could be problematic.  Zip currently uses Unicode escapes
+    for characters that do not convert when converting file paths.  It may be
+    better to leave content conversions to other tools.)
+    (Given many unanswered questions, this is not likely to be addressed until
+    after Zip 3.1.)
+- No Win32 Security messages in log when -q?
+    (Get messages in log when not -q.)
+- Are scanning dots included in -q -dg?  If so, should be space between scan
+    and zip dots.
+- Can DLL and LIB support archive testing?
+    (Given issues spawning UnZip to do testing, this feature has not been
+    included in Zip LIB/DLL.  Any user of Zip LIB/DLL should also be able to
+    link/call UnZip LIB/DLL to do testing.  Zip would just be a middleman
+    where the user should call UnZip directly.)
+    (Not planned for Zip 3.1.)
+- "zip infile -Yaes128 -O outfile" should work.  (ToDo item?)
+    (Copies, but does not encrypt.  Should encrypt.)
+    (May be looked at before release.)
+- On Windows, "zip archive -", when not in pipe, seems broke.
+    (May be addressed before Zip 3.1 is released.)
+    (Does look to be working now.)
+- On Windows, if UNICODE_SUPPORT_WIN32, set z->oname to UTF-8 name, unless
+    disabled by -UN=ShowUTF8-?  Then all warnings and errors can use oname.
+    (Significant work needed, but should be straight forward.)
+- Document API in Manual?
+    (Some documentation done.  The README files in the Zip source kit
+    provide full documentation.)
+    (May be done for Zip 3.1.)
+- Is no binary in entry and archive comments sufficient?  Does UTF-8 need
+    checking?
+    (No binary should be sufficient to ensure proper Zip entries.)
+    (No further work planned for Zip 3.1.)
+- Check how other zips handle entry sorting.
+    (Seems only relevant on Unix.  Does not seem high on list.)
+    (May look at this before Zip 3.1 goes out.)
+- What happens when unzip passed password with binary via zip -T and keyfile?
+    (Probably won't work (bad password, or bad command line).)
+    (Lack of a better mechanism to pass passwords to UnZip prevents much
+    more being done with this.)
+    (Lack of keyfile support in UnZip is a big show stopper.)
+- Decide if split or --out archive that fails -T should be deleted.
+    (May leave as is, i.e. output remains in these cases.)
+    (Done for now.)
+    (May look at again before Zip 3.1 is released, however seems not much
+    reason to delete these files.)
+- WIN32 compile mismatches when NO_LARGE_FILE_SUPPORT.
+    (Incompatible stat in win32/win32.c when NO_LARGE_FILE_SUPPORT.)
+    (For now, LARGE_FILE_SUPPORT required for WIN32.  This should not be
+    an issue as Zip 3.1 now only is advertised to support back to
+    Windows XP (maybe Windows 2000), which includes large file support.)
+    (Probably won't be looked at again before Zip 3.1 goes out.)
+- Windows to Unix permission bugs.  (2015-05-31)
+    (Windows to Unix user write permission on directories.  (2015-07-19
+    email.)  It seems Zip on Windows sets unix permissions to 000, then
+    let's the UnZip at the other end determine permissions, in conjunction
+    with umask.  Seems little Zip can do, but need to test what happens when
+    set Unix permissions to other than 000.)
+    (Windows/DOS attributes.  Are they being properly included?)
+    (System, hidden, readonly?)
+    (Yes, so it seems.  It seems archives Zip creates on Windows, when
+    taken to Linux, get the Unix attributes set by UnZip over there.
+    Need to test if setting Unix attributes on Windows has any impact
+    on how UnZip extracts the entries.)
+    (Works for now.  No further work planned before Zip 3.1 goes out.)
+- Remove SPLIT_SUPPORT -v line?
+    (Leave in as some ports may not support SPLITS, in which case this
+    would not be listed for those ports.)
+    (No further work planned before Zip 3.1 goes out.)
+- IBM tests?
+    (Due to lack of IBM support, do not seem to be happening.)
+    (No further work planned for Zip 3.1, unless bug reports come in.)
+- Fix -SI to only rename stdin, instead of any entry named "-".
+    (This should be a quick check that the "-" entry came from stdin.)
+    (For now, user is responsible for not using -SI on non-stdin file,
+    not that that usage would hurt anything.  User file system files should
+    not be named "-" to avoid confusion.)
+- Better handle ALLOWED_PREFIX_CHARS and limitations on -pa, pp and -SI.
+    (Need to evaluate the utility of limiting what characters the user can
+    use here.  In the end, it may be up to the user and the OS what is
+    allowed.)
+- Consider controlling inclusion of -sd output in log using -li.
+    (-sd output now uses the standard output routines, and so that output
+    gets included in log.)
+    (Should verify all is working correctly.)
+- Standardize on using size_t where appropriate.  Retire extent, which seems
+    generally defined as size_t.
+    (Swapping size_t for the Zip extent type should be easy.  Resolving the
+    uses of size_t and accounting for size_t changing size when compiled as
+    64-bit is a sticky issue requiring significant work and modifications to
+    key code areas.)
+    (Unless bugs are identified, may leave it as is for Zip 3.1.)
+- Address use of Z_LONGLONG, created to support the API, by other ports, in
+    particular VMS that defines it other than 64-bit.  Probably should instead
+    define separate types as needed by the API and use those names instead of
+    a generic Z_LONGLONG.  Need to take another look at how -sd outputs fcount
+    and zcount.
+    (Use of UZ_LONGLONG replaced with API_FILESIZE_T in api.h.  UZ_LONGLONG
+    has gone away.  A check added to ensure API_FILESIZE_T is 64-bit when
+    DLL compiled, so interface structures are fixed size.  Otherwise it is
+    the size of uzoff_t by default, 32-bit on VMS (which has no 64-bit).)
+    (Type casts fixed the fcount and zcount display issues.)
+    (Seems to work now.  Further work may not happen before Zip 3.1 goes out.)
+- Use uz_filesize_t globally.
+    (Need to check this.)
+- Check use of "(unsigned)" in zip.c.  These probably should be explicitly
+    typed to "unsigned short" or "unsigned long".
+- Reconcile PATH_MAX stuff in api.h with path limits in zip.h, and PATH_MAX
+    and similar used elsewhere.
+- Deprecated GetVersion() in Windows 10.
+    (Still works.  May not get to this in Zip 3.1.)
+- Add other callbacks to LIB and DLL C examples.
+    (May not get to this before Zip 3.1 goes out.)
+- Look at making AES WG encryption selection consistent across ports.
+    (Need to check this.)
+- Need test procedures for each option, as well as for common or troublesome
+    combinations of options.  Also special cases.
+    (Include doing -l, then -ll to undo and verify get original.)
+    (Add notes to TestList.txt.)
+    (A test system for Zip may be in the works.)
+    (Something may be done here before Zip 3.1 goes out.  Defining all the
+    test cases is a significant task.)
+- For EBCDIC, verify ASCII '/' ((char)0x2f) is used for iname parsing
+    (and any internal names) and '/' (whatever for the character set) is
+    used for name (and any external names).
+    (This should be tested on an EBCDIC platform.)
+    (May not be able to get this done before Zip 3.1 released due to lack of
+    IBM platform access, unless get bug reports.)
+- Fix zwopen_read_long() in win32/win32.c to handle user privileges.
+    (May not happen before Zip 3.1 release.)
+- Fix utf8_to_local_string().
+    (This can probably wait until after Zip 3.1, as this functionality is
+    now rerouted through wide_to_local_string(), which knows what to do.)
+- ZipNote is not Unicode aware.
+    (zipfile.c, line 5806 and below makes assumptions about UTIL that
+    are probably no longer valid.)
+    (Should look at this before Zip 3.1 goes out.)
+- ZipCloak, ZipNote and ZipSplit should use Windows wide command line as
+    Zip does.
+    (This may require enabling some features that up to now have been
+    excluded from the utilities.  The original philosophy was that utilities
+    only needed to do specific things, but as features and needs evolve, the
+    utilities are being asked to do much the same things as Zip itself, such
+    as properly handling locales.)
+    (May not be worth holding up Zip 3.1 to fix.)
+- Consider Deflate64.
+    (Probably won't happen, but it may be a faster alternative to the other
+    compression methods to get a very small archive in some cases.)
+    (Deflate64 (Enhanced Deflate)?  (According to
+    www.binaryessence.com/dct/imp/en000225.htm, the changes are relatively
+    minor from deflate to Deflate64.  (This, they say, is based on analysis
+    of Info-ZIP UnZip inflate.c.)  Zip's deflate code is a bit wired around
+    32k windows, so the changes are not trivial.  However, a copy and paste
+    of deflate.c and related files to deflate64.c and related files might
+    be straight forward.  As far as Deflate64 being proprietary, it seems
+    any copyright they may have had is expired at this point.  We should
+    ask PKWARE if we can use it now.)
+    (Unlikely to happen before Zip 3.1 goes out.)
+- XZ?
+    (XZ is based on LZMA and is part of the LZMA SDK at
+    www.7-zip.org/sdk.html (version 9.04 and later).  WinZip
+    (http://www.winzip.com/comp_info.htm) says they got the source from
+    tukaani.org/xz/.)
+    (Would really like to include this in Zip 3.1, but probably not worth
+    holding up the release for.  Also, UnZip unlikely to support it soon.)
+- Look at sizing in crypt.c to verify appropriate sizing is used.  For
+    instance, zoff_t versus size_t.  2015-04-25 (EG)
+- Encryption wrapper mode?  2015-05-22 (EG)
+    (This is a new mode for wrapping an archive into an encrypted entry.)
+    (Not likely to happen before Zip 3.1 goes out.)
+- Extended data ef?  Test?
+- Add top index to extended help?
+    (Considering.)
+- Update extrafld.txt with PH and other "new" extra fields.  Get to PKWARE.
+    (extrafld.txt looks updated to include this PHold ef.)
+- Clean up envargs().
+    (Should be done.  It could get messy cleaning up memory allocation.)
+- Update C# WinDLL example.
+    (This may need to be done mostly from scratch.  Will try to get to it.)
+- Verify assumption that can z->lflg = z->flg in zipup.c.
+- Consider moving ecomment() and acomment() from api.c to main code
+    and replacing embedded code for non-LIB/DLL case with these.  For
+    LIB/DLL, consider enforcing \r\n line ends.
+    (Some work done.  Need to look at.)
+- Document ENABLE_USER_PROGRESS.
+    (Very little documentation on this feature provided by a developer.)
+- Replace -tn with updated -X to remove universal time?
+    (Does not seem high on the list.  Zip 3.1 may go out with this as is.)
+- Look at utilities.
+    (May be sufficiently done, or as done as it will get for now.)
+- Look at -v verbose mode.
+    (Mostly replaced by -sd and other options.)
+- Test -@@, -@, -i@, -x@, and @argfile.
+    (Initial tests suggest all are working.)
+- zread(ifile, buf, 1); in zipup.c.
+- Review privilege granting in Windows SD code.  Make sure files are
+    opened with available privilege.
+    (As Windows has evolved, the Windows privileges issues have gotten
+    more complex.  This all should be looked at.)
+    (May not get to by release of Zip 3.1.)
+- Look at total extra field size.
+    (Some checks added to ensure end extra field block is kept within
+    limits.)
+- Automated testing.
+    (Being looked at.  Actually, may have a system, just need to load
+    test cases.)
+- Utilities should be able to create logs.  (2015-10-18 EG)
+
+
+
+===============================================================================
+
+
+
+After Zip 3.1
+-------------
+
+(Still need to clean up this list.)
+
+The Short List
+--------------
+(Items to look at for next beta.  Some may get moved to the Long List and
+others may be added.)
+
+Windows:
+- Look at and update Windows security handling to make sure user has the
+    privileges requested.  Update zwopen_read_long() to assume privilege
+    set first, then revert to non-privilege file open.  May need to request
+    privilege in code.  (2014-04-16)
+- Use get_wide_argv() to get wide character (Unicode) command line from
+    Windows console.  This would allow direct input of Unicode file names.
+    (2014-04-16, pulled from forum "Info-ZIP Software Discussions and Feature
+    Requests > Info-ZIP Zip > Unicode paths and ZipNote" thread)
+    (Done?  Need to add support to utilities?  ZipNote still needs to be addressed.)
+Unix:
+- Unix ACL storage.  This has been on the table for awhile now.  (2014-04-17)
+- Unix mount points?  (2014-09-12)
+
+Zip structure:
+- Better check on comment size.  May want to limit it to much less than 32765
+    bytes.  (2014-04-15)
+- ACL longer than can fit in a header.  (2014-04-15, but this issue has been
+    around for years.)  This may require a new place to store long data
+    in the archive for each record.
+- Option like -D (--default) for man that ignores contents of environment.
+    Could be helpful for debugging.  (See
+    http://man7.org/linux/man-pages/man1/man.1.html)  (2014-01-18)
+
+Libraries, DLLs, and LIBs:
+- Consider adding an entry point to the Zip DLL/LIB interface that allows a
+    memory block to be archived to a zip file.  This also opens the question
+    of allowing the writing of the zip file to memory.  This in part duplicates
+    what zlib allows, except Zip would include meta data and allow storing more
+    than one entry in the same file or memory block.  See forum "Info-ZIP
+    Software Discussions and Feature Requests ‹ Info-ZIP Zip < API: memory2file
+    function".  (2014-09-12)
+- Add C# example for Zip 3.1 (need to be converted to new DLLs) - original
+    C# example already added with note.  (2014-09-12)
+
+Extended attributes:
+- Extended attributes for Windows, Linux, and Mac OS X.  (2014-09-12)
+
+Unicode and languages:
+- Though Unicode paths have been implemented and tested, Unicode comments
+    are not yet supported (except for comments on UTF-8 native systems which
+    are supported.  Now that native UTF-8 storage is standard for Unicode,
+    comments are UTF-8 by default.  Still need to implement UTF-8 comment
+    extra field.)  (2014-09-12)
+- Support for other languages maybe (warnings, error messages).  (2014-09-12)
+
+Compression:
+- XZ compression.  (2014-09-12) (updated 2015-04-15)
+- LZMA progress dots?  (2014-09-12)
+- LZMA revert to store.  (2014-09-12)
+
+Encryption:
+- Review state of AES and traditional encryption packages.  (2014-09-12)
+
+Dates and times:
+- Option to allow time differences of exactly one hour (or an optional
+    amount) when checking if a file to update has changed (as for freshen)
+    to handle daylight saving and time zone differences.  (This might be
+    -tz for --time-zone and take a relative time offset.)  (2014-09-12)
+
+Status reporting:
+- Look at monitoring keyboard input to enable commands such as status,
+    pause, and resume with single keystroke.  Would not be compatible with
+    other uses of stdin so this feature would not be allowed in those cases.
+    (2014-09-12)
+- Look at trapping console input to allow output of status with key stroke.
+    (2014-09-12)
+
+
+Paths:
+- A way to rename paths in an archive (like ZipNote, but as creating archive).
+    Name transformation option.  (2014-09-12)
+- UNC path support maybe.  (2014-09-12)
+- Look at Zip saving path case based on what's on the command line and
+    determine if needs to be fixed.  Windows only?  On case insensitive
+    system, if user enters case on command line that does not match
+    actual files, the case entered is used instead of the case of the
+    file name on the system.  (Seems Zip acts correctly on case sensitive
+    systems and the case mismatch has little impact on case insensitive
+    systems.  Could be complex fix that requires significant testing.)
+    (2014-09-12)
+- Do we want an option to allow storing absolute paths?  This is contrary
+    to zip standard, but seems useful in some cases.  See forum "Info-ZIP
+    Software Discussions and Feature Requests ‹ Info-ZIP Zip < Create zip file
+    with absolute path including 1st "/"?".  (This might be implemented
+    using new extra field to store the path.  -jj would seem the option for
+    enabling this.)  (2014-09-12)
+
+
+Other:
+- Way to resume an interrupted archiving operation.  (2014-09-12)
+- Decide if -R, -i and -x should use external rather than internal patterns.
+    (2014-09-12)
+- Verbose mode -v may still need work.  (2014-09-12)
+- When user pattern is a directory, add end / automatically.  (2014-09-12)
+- Update Windows build projects to cover available options.  (2014-09-12)
+- WinZip .zipx splits use split extentions like .zx01 instead of .z01.
+    (2014-09-12)
+- FAQ says exact byte counts for downloads are in readme files in same
+    directory.  Is this true?  Are the byte counts up to date?  (2014-09-12)
+- Provide hashes (such as MD5) for kits?  (2014-09-12)
+- Maybe assemble some stats for freshen, update, and so on.  (2014-09-12)
+- Allow zip -vFF -sf to check a broke archive?  (2014-09-12)
+- Check if _WIN64 is supported on VS 2010 and if that increases the
+    size of size_t (and so the limits on qsort()).  64-bit qsort?  (2014-09-12)
+    (Implemented Windows WIN64 compilation.  size_t and anything depending
+    on it does change.)
+- Update proginfo docs as needed.  (2014-09-12)
+- Look at making binary check buffer larger, especially if can seek back.
+    (2014-09-12)
+- Implement split callback.  (2014-09-12)
+- Check Version Made By on Windows.  (WinZip seems to read correctly,
+    so may be too late to change anything.)  (2014-09-12)
+- -T does not handle commands with ' well.  (Mail 12 Mar 2010)  (This may
+    already be addressed.)  (2010-03-12)
+- Look at how many times a stat() or similar is done and see if can cache
+    some of the results.  Still need to check file just before archiving
+    as scan stat() may be stale by then.  (2014-09-12)
+
+
+
+-------------------------------------------------------------------------------
+The Longer List
+---------------
+(Items to look at when time available.)
+
+- Multi-threading to speed up compression, maybe borrowing some from the
+    LZMA SDK if useful.  (2014-09-12)
+- Finish -DI incremental archives.  (As -BT, but for single archive.)
+    (2014-09-12)
+- Allow an application to get a status on demand using the API interface.
+    Not sure this is possible for DLL.  (2014-09-12)
+- -A should be allowed while updating an archive.  (Mail 29 Nov 2010)
+    (2010-11-29)
+- Check functioning of -$ volume label command.  (2010-04-23, from forum
+    "Info-ZIP Software Discussions and Feature Requests > Info-ZIP Zip >
+    Question about -@ command" thread)
+- Look at posting this TODO list public somewhere, maybe SourceForge.
+    (2010-04-23)
+- Create stats comparing add, update, freshen, and other modes.  Also
+    compression levels and methods, and encryption.  (2010-05-02)
+- Verify that "zip -T archive" does what is expected.  (2010-06-02,
+    from forum thread "Info-ZIP Bugs > Zip Bugs > ZIPped w/out errors,
+    but then SEEK error -OS/2 JFS")
+- Get around to enhancing zip -FF to fix damaged archive entries if
+    reasonable to do (a user took a stab at it a while back).  (2010-06-02)
+- Add option to Zip to allow fixing bad CRCs.  The result may be unusable,
+    but may be worth a try in some cases.  (2014-09-11, Forum, "Zip Bugs
+    > wrong error code 12")
+- -FF does not handle Unicode bit 11.  (2008-08-09)
+- Extended attributes for Windows, Linux, and Mac OS X.  (2014-09-12)
+- Win32 ACL rewrite to use backup api to create new and more useful extra
+    field (need unzip support) (2014-09-12 Kai).
+- Fix EOCDR central directory entry count to use mod 2^16 for backward
+    compatibility.  (2009-01-03 Vincent Lefèvre, see mail)
+- Support MAEMO port Unicode change.  (9 Jan 2009 Danny Milosavljevic,
+    SourceForge)  Look at UnZip 6.0 changes, including configure and
+    unzip.c.  Mostly implemented.  (2009-03-31)
+- Compare to common UnZip functions and update to any better functions.
+    (2014-09-12)
+- Add way to merge archives.  (2009-01-18)
+- Should allow "zip -vFF -sf" to check an archive.  Also should show
+    when creating central directory entries when none were found.
+    (2009-01-26)
+- Default if hit Enter at single disk archive question for -FF if no
+    central directory should be to assume single disk archive.  (2009-01-26)
+- Is there a way to securely pass a password to UnZip for -T?  (2014-09-12)
+- Differential backup option -DF should return Nothing To Do warning
+    if no files to add.  Maybe -MM can be used to prevent creation
+    of empty archive.  (2009-01-30, from forum -DF posting)
+- Address alternate file streams?  (2009-01-30, from forum)
+- Add way to rename files being written to archive.  (2009-02-06, from
+    forum)  Option -pp for adding a path prefix implemented in Zip 3.1b.
+    Still need to implement a generic rename.  (2009-03-29)
+- Fix possible problem with high-bit characters on Unix not being stored
+    correctly on Windows.  Could be OEM issue.  (2009-02-01, ichabod,
+    from mail)
+- When -R, -x, or -i pattern ends in a directory add / to the end
+    (2004-11-05 Nehal).
+- Decide if -R, -i and -x should use external rather than internal patterns.
+    Also, change pattern matching to not do ex2in() and then in2ex() if
+    appropriate.  (2005-12-26 SMS)
+- UNC paths like \\server\path.  (2005-04-26)
+- Add About page option similar to -h2 and -v but lists Info-ZIP
+    information (could be -sa) (2006-04-29).
+- Update utilities ZipSplit, ZipNote, and ZipCloak to handle split archives.
+    (2014-09-12)
+- Update ziperr() and finish() if needed.  (2014-09-12)
+- Review memory allocation and fill in memory leaks if any.  (2014-09-12)
+- Enhance -FF to fix common problems such as archives ftp in text mode
+    and fixing checksums so entries can be extracted if that makes
+    sense (2007-06-17).
+- Add \ to / conversion in zipsplit to fix problem in
+    1/29/2004 email.  (2004-01-29)
+- Encryption bug with small stored file (12/27/2005) (fixed?).  (2005-12-27)
+- When updating large archives with few entries being updated maybe
+    display something in large periods of quiet.  (2006-01-23)
+- Windows OEM comments.  (Probably should use UTF-8 instead.)  (2006-05-17)
+- Example of using MVS zip and unzip (3/30/2004) (Need one).  (2004-03-30)
+- Maybe convert ../ in archive (5/20/2006).  (2006-05-20)
+- Allow rename stdin "-" to something else (12/27/2005 gregor).  (2005-12-27)
+    (-SI does this.)
+- Check for possible buffer overrun weaknesses while reading zip files.
+    (2014-09-12)
+- Do Active Template Library (ATL) (4/27/2005).  (2005-04-27)
+- Flush Win16 support - to be determined (Mike).  (2014-09-12)
+    (Has started, with removal of some 16-bit DLL support.)
+- Way to convert file names on input, converting foo.c to dir/foo_bar.c
+    for instance (4/8/2004, 3/12/2004).  (2004-04-08)
+- French WiZ (not a Zip thing actually but dependent on zip and unzip).
+    (2014-09-12)
+- Then there is that wierd ^D being converted to \000 error reported
+    in 6/21/2003 email when Zip is outputted into a pipe on Windows ports.
+    (2003-06-21)
+
+
+Old list:
+
+Main features still missing for next official version (last updated 2/11/2001):
+
+- what about the binary/text detection ? (seems done)
+- -b and -t options in help screen (covered in -h2)
+- findfirst/findnext and after that LSSTAT (performance!!)
+- use IS_EXEC from djgpp stat.h
+- use install in unix/Makefile instead of mkdir -p, look at install sh script.
+- #elif for those ports that can handle it.
+- what about zopen vs. fopen ?
+- Add zcreate or zfcreate for win32.
+- Assembler stuff in match.S (subexpressions)
+- zipping huge files (> 2G, unsigned 32bit) (done)
+- Testsuite for zip and unzip (John D. Mitchell)
+- make a version.c or version.h that includes all the compiler names
+- run utils with dmalloc().
+- what to do with zip -F and zip -FF (readzipfile2()) ? (done?)
+- profiling of the code
+- multi disk zip files (could be done)
+- zipfile modification tool (Greg)
+- Implement -- option (Thomas Klauser, wiz@danbala.tuwien.ac.at) (could be done)
+- don't add files with "Archive bit" or add files with "Archive bit"
+  (uwe.becher@metronet.de) (could be done with -AS and -AC)
+- 32 bit file attributes
+- generate output without having to seek at all (this seems to be stream output)
+- remove contractions from zip error messages, make them clearer (Steve)
+- display "[text]" for ascii files when not quiet (no -q) (Timo Salmi)
+- does zipnote accept names with version number?
+- for a WORM, zip should create temp file only when updating; new archives
+  should be created directly.
+- APPNOTE.TXT specifies "4) The entries in the central directory may
+  not necessarily be in the same order that files appear in the zipfile"
+  but readzipfile() relies on same order. (new read does not, and now
+  the read for -FF searches for central directory matches rather than
+  rely on the order)
+- on Mac, MPW C 3.3.1 requires #if (a || b)  ["#if a || b" taken as "#if a"]
+- on Unix, let -S be "include non-regular files without reading from them"
+  (as pkzip on Unix). This requires unzip support.
+- zip -l should do ebcdic->ascii translation on CMS and MVS
+- zip as subroutine (zdig/241) (some work done on this)
+- accept k and M in zipsplit
+- store / (part of file name) as ! in OS/2 (problem only with -E ?)
+- in addition to -l (LF to CR LF) and -ll (CR LF to LF) add -lc
+  (LF to CR LF but CR LF remains unchanged)
+
+
+Known bugs:
+
+- On VMS, zip fails reading some files with "byte record too large for
+  user's buffer". You must use the "-V" option for such files.
+  (many changes to VMS so may be fixed)
+  Fixed in 3.1d.  These "some files" had record format Stream or
+  Stream_CR, and long records.
+
+- on MSDOS, zip386.exe does not like "zip -bc: foo ..."
+
+- on MSDOS, zip386.exe is sometimes much slower than zip.exe. This is
+  probably a problem with DJGPP (to be investigated).
+
+- on NT with C shell, zip should not do file name expansion again.
+
+- zip zipfile ... ignores existing zipfile if name does not have an extension
+  (except for the -A option, generally used on self-extracting files).
+  (archives should probably have extensions.  Things like archive.jar work)
+
+- For an sfx file without extension, "zip -A sfx" works but "zip sfx -A"
+  doesn't.  (because options were required first, but now both OK)
+
+
+- When storing files in a zipfile (-0), zip marks all of them as binary.
+  (This may be fixed.)
+
+- On VMS, some indexed files are not restored correctly after zip -V and unzip.
+  (This is now known to be a problem of UnZip. The workaround for Zip 2.2
+  and newer is to use PK-style VMS extra fields; this is now the default.
+  NOTE that UnZip 5.32 has been fixed [971019]!) (many VMS changes so
+  this may be fixed)
+  If this problem is confined to IM-style attribute storage, then
+  it's unlikely that anyone will ever notice it nowadays.  Having no
+  idea which "some indexed files" suffer from the problem, it's
+  tough to tell if it ever got fixed in the IM code.
+
+- zip and unzip should use the same pattern matching rules, particularly
+  on MSDOS and OS/2. On OS/2, "zip foo *.*" should also match files
+  without extension.
+  Partially DONE (OS/2 "*.*" matches "*".)
+
+- there should be a way to avoid updating archive members (only addition
+  of new files allowed)
+
+

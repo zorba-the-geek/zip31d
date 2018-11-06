@@ -1,0 +1,12 @@
+Info-ZIP Zip 3.1 - Source and doc kit.
+ Zip is a .zip archive creator, generally
+ PKZIP-compatible, and widely portable
+ (including to Unix, Mac OS X, VMS, and
+ Windows - see documentation).  Written
+ in C (with some asm on some system
+ types).  Build scripts and examples in
+ various languages.  Multiple compression
+ and encryption methods supported.
+This is FREE (but copyrighted) software.
+See LICENSE for details on distribution
+and reuse.

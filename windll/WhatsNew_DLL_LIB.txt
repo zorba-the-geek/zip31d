@@ -1,0 +1,227 @@
+WhatsNew_DLL_LIB.txt
+
+This file describes what's changed and new regarding the Zip 3.1 LIB/DLL
+interface.  More detailed information can be found in the api.h and api.c
+files.
+
+Overview of changes:
+
+  Added functionality.  The updated DLL interface now includes more robost
+  control of zip operations.  Most significantly, the options structure
+  previously used to tell Zip what to do is no longer used, replaced by a simple
+  command line interface.  The user just passes the command line to execute
+  to the Zip 3.1 DLL via the new ZpZip() entry point and Zip will parse the
+  command line and call zipmain() to perform the actual zipping.  This interface
+  allows access to features previously excluded from DLL use, such as viewing
+  Help and License information.  Some Zip operations are still not appropriate
+  for DLL use, however.  We have tried to lock all of these out from DLL use,
+  but it's likely the DLL caller can still request operations from the DLL that
+  give strange results or even crash the DLL.  Be careful when asking the DLL to
+  perform non-standard actions and please report any issues to us.
+
+  Flexible interface.  Though additional callbacks are now provided that give
+  the caller more control, many are not needed for basic operation.  Define
+  only those callbacks you need.  Also be aware that callbacks eat time and the
+  more control and feedback you request the more the DLL interface may slow down
+  your application.
+
+  Migrating to Zip 3.1 DLL.  It should be simple to convert a program using
+  zip32.dll or one of the Zip 3.1 beta interfaces to zip32_dll.dll but some
+  significant changes are needed.  As the basic operations remain the same, the
+  conversion should be straight forward.  Note that the Zip 3.1 DLL interface
+  now requires support of 64-bit integers to fully use some of the callbacks.
+  See the VB 6 example for how these callbacks can be used without 64-bit
+  integers.
+
+The LIB and DLL now use the same entry points.  When Zip is compiled as a LIB,
+these are standard function calls.  api.h has the function prototypes needed to
+use these functions.  When Zip is compiled as a DLL, these become exported
+entry points available to the caller.
+
+Exported DLL entry points:
+
+  These are the main function interface/entry points in the Zip 3.1 LIB/DLL:
+
+     ZpVersion            - Returns version of LIB/DLL.  When using the DLL,
+                            this should be called first to verify the version
+                            of the DLL is compatible with the caller.
+
+     ZpZip                - Single call main entry point for calling Zip with
+                            command line to execute.  This one call now sets
+                            up the callback functions and calls Zip with the
+                            provided command line.
+
+  The following are test entry points that can be used to determine the caller
+  is properly interfacing with the LIB/DLL:
+
+     ZpZipTest            - Single call main entry point for testing Zip DLL
+                            interfaces.
+
+     ZpTestComParse       - Single call that tests command line parsing.
+
+     ZpTestCallback       - A simple test of calling a user callback.
+
+     ZpTestCallbackStruct - A callback test, but also tests providing the
+                            callback addresses to the DLL using a structure.
+
+  These are now deprecated and should not be used:
+
+     ZpInit               - Initializes the function callbacks.  This is now
+                            done by ZpZip.
+
+     ZpArchive            - Call the DLL or LIB using the old options
+                            structure.  This is replaced by ZpZip where the
+                            caller now specifies a command line to execute.
+                            Be warned that this code has not been recently
+                            updated or tested.
+
+   Previous LIB examples have called ZpInit to set up the callbacks, then
+   called zipmain() directly to execute a Zip operation.  The preference now
+   is to call ZpZip for both LIB and DLL.
+
+   All interactions with the DLL once ZpZip() is called is through callbacks
+   and the final return code.
+
+   When the LIB is linked in, many of the DLL context issues do not apply.
+   In this case ZpInit() could be used to set the function callbacks once and
+   the local function zipmain() used to actually call Zip.  Unlike the DLL,
+   the LIB inherits the caller's stdin, stdout, and stderr.  However, the
+   preference is now to use ZpZip() with the LIB as it establishes the Zip
+   context with one call.
+
+ZpVersion() now returns a more complete set of data on the DLL or LIB library.
+One major addition is the features string, where a list of supported features
+and compilation selections is provided.  If a specific feature is needed, the
+caller should check that it's listed in this string.  Also, version of LIB/DLL
+interface is now included.   This provides the earliest version of Zip where
+the current interface was supported.  This is currently set to 3.1.0 (Zip
+version 3.1.0).  In later versions of Zip (such as Zip 3.2), the LIB/DLL
+interface version should remain 3.1.0 unless changes are made in Zip 3.2 to
+make it incompatible.  If the LIB/DLL version remains 3.1.0, then the 3.1.0
+examples should still work.  It's up to the caller to check the feature list
+to see if a particular feature is updated or removed.
+
+Callback functions are used when the LIB/DLL needs to pass information to the
+caller or needs information from the caller such as a password.  The following
+callbacks can be defined.  The callback name is given, and under it is the name
+of the function pointer to set.  Any callback not used should be set to NULL:
+
+     DLLPRNT             - Called to print strings.  Nearly all standard
+     (print)               output of Zip is routed through this callback.
+
+     DLLPASSWORD         - If a password is needed by Zip, this function is
+     (password)            called.  If the user will be encrypting entries,
+                           this callback must be defined to set the password
+                           or an error will occur.
+
+     DLLSERVICE          - Called as each entry is processed.  This callback
+     (service)             provides stats at the entry level, once processing
+                           for the entry is finished.  It also allows the Zip
+                           operation to be aborted by setting the callback
+                           return code to 1.
+
+     DLLSERVICE_NO_INT64 - A version of DLLSERVICE that does not use 64-bit
+     (service_no_int64)    args for file size, but instead uses high and low
+                           32-bit parts.  This was needed for Visual Basic 6,
+                           for instance, which doesn't know how to handle
+                           64-bit arguments.  (Well, there is a way around
+                           this.  See the vb6 example and how the progress
+                           callback was implemented.  This callback may be
+                           deprecated in the next release.)  This callback
+                           is now only available on WIN32 (for supporting
+                           the old VB 6 examples).
+
+     DLLSPLIT            - Called to request split destination if splitting
+     (split)               (not yet implemented).  DO NOT USE the split
+                           destination feature or split pause feature (-sp)
+                           with the DLL until this is implemented.  Normal
+                           automatic splitting using -s does not need this
+                           and is supported.
+
+     DLLECOMMENT         - Called to request a comment for an entry.  If the
+     (ecomment)            caller will be working with entry comments this
+                           callback must be defined or an error will result.
+
+     DLLACOMMENT         - Called to request the archive zipfile comment.  If
+     (acomment)            the caller will be working with archive comments
+                           this callback must be defined or an error will
+                           result.
+
+     DLLPROGRESS         - If defined, this callback is called to report
+     (progress)            progress during the Zip operation.  It returns:
+                           - entry name (path)
+                           - UTF-8 entry name (upath)
+                           - % entry bytes processed
+                           - % all bytes processed
+                           - uncompressed file size in bytes
+                           - uncompressed file size as string (such as 7.7m)
+                           - action (such as "Add")
+                           - method (such as "Deflate", which can change)
+                           - info (additional info, such as "AES256")
+
+                           This callback is called at start and end of each
+                           entry processing as well as after so many bytes
+                           processed for that entry.  The processing chunk
+                           size is set as an argument to ZpZip().  This
+                           feature has not been tested when ZpZip() is not
+                           used; the global variable progress_chunk_size
+                           would need to be set to the number of bytes that
+                           will be the chunk size (how many bytes to process
+                           before putting out another progress report).  The
+                           chunk size should be at least 1K bytes.  The
+                           smaller the chunk size, the more fine the control
+                           and reporting, but the slower the execution (as
+                           callbacks take time).  100m (100 MiB) may be a good
+                           compromise.  Setting return code to 1 aborts the zip
+                           operation.
+
+     DLLERROR            - This callback is called when a Zip warning or error
+     (error)               is generated.  The user should define either
+                           DLLPRNT or DLLERROR to see any warnings or errors
+                           generated by Zip.  This is provided so that DLLPRNT
+                           can be NULL (ignoring any normal Zip output) while
+                           still getting any generated warnings and errors.
+
+     DLLFINISH           - Called at end of zip operation to provide stats.
+     (finish)
+
+   Unused callbacks should be set to NULL.  Zip will skip any callbacks where
+   the address is set to NULL.
+
+   As a minimum, the DLLPRNT call back should be defined to see what's going
+   on.  Alternatively, the DLLSERVICE and DLLERROR callbacks could be used to
+   track progress and handle any warnings or errors.  If passwords or comments
+   are being worked with, those callbacks must be defined to provide the
+   passwords or comments.  If large files are being processed, the DLLPROGRESS
+   callback can provide status updates during what otherwise might be a long
+   period of quiet and allow aborting the processing of the large file.
+
+   Callbacks that include a file size (Service, Progress and Finish) now use
+   API_FILESIZE_T for the sizes.  On most ports supporting the LIB/DLL this
+   is "unsigned long long" (64-bit).  The exception is VAX VMS, which uses
+   "unsigned long" (32-bit).  Including #include "api.h" in the caller should
+   make this visible.
+
+The ZPOPT structure was used to pass settings, such as root directory, to
+Zip via the ZpArchive() call.  As ZpArchive() is now obsolete, this
+structure should no longer be used and is no longer being updated.  DLL
+users should only use ZpZip().  LIB users should also use ZpZip(), but
+could use ZpInit() instead to set callbacks, then call zipmain() directly.
+
+The DLL is currently supported only on Windows.  At this time only Visual
+Studio 6 and Visual Studio 2010 are supported.  Porting to other versions of
+Visual Studio should be straight forward, but we haven't done it yet.  We
+don't plan to support anything earlier than Visual Studio 6.
+
+See api.h and api.c for additional information.
+
+Unix line ends.  Note that files may be saved in unix format with carriage
+returns stripped.  These may need to be restored before the project can be
+successfully used.  This can be done by using the -a option to unzip.  Another
+way to do this is to open each file in WordPad, select and cut a line, paste
+the line back, and save the file.  This will force WordPad to change the line
+ends in the entire file.  Newer versions of WordPad may not do this.  Unix
+line ends don't seem to be a problem with Visual Studio 2010.
+
+21 September 2015
+
